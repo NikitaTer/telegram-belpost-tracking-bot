@@ -1,2 +1,5 @@
 .idea/
 .out/
+
+# Contains private data
+data.properties
