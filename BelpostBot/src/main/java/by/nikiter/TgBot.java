@@ -1,14 +1,21 @@
 package by.nikiter;
 
+import by.nikiter.command.AddTrackingCommand;
+import by.nikiter.command.GetAllTrackingsCommand;
 import by.nikiter.command.HelpCommand;
 import by.nikiter.command.StartCommand;
 import by.nikiter.model.PropManager;
+import by.nikiter.model.belpost.PostTracker;
+import by.nikiter.model.state.UserState;
+import by.nikiter.model.state.UsersRep;
 import org.telegram.telegrambots.ApiContextInitializer;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.extensions.bots.commandbot.TelegramLongPollingCommandBot;
 import org.telegram.telegrambots.meta.ApiContext;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
@@ -34,6 +41,8 @@ public class TgBot extends TelegramLongPollingCommandBot {
 
         register(new StartCommand());
         register(helpCommand);
+        register(new AddTrackingCommand());
+        register(new GetAllTrackingsCommand());
 
         registerDefaultAction((absSender, message) -> {
             try {
@@ -47,10 +56,44 @@ public class TgBot extends TelegramLongPollingCommandBot {
 
     @Override
     public void processNonCommandUpdate(Update update) {
-        try {
-            execute(new SendMessage(update.getCallbackQuery().getMessage().getChatId(), PropManager.getMessage("non_command")));
-        } catch (TelegramApiException e) {
-            e.printStackTrace();
+
+        if (update.hasCallbackQuery()) {
+            processCallbackQuery(update.getCallbackQuery());
+        } else if (update.hasMessage() && update.getMessage().hasText()
+                && UsersRep.getInstance().getUserState(update.getMessage().getFrom()) != UserState.USING_BOT) {
+            processUserAnswer(update.getMessage());
+        } else if (!update.hasMessage() || !update.getMessage().hasText()) {
+            try {
+                execute(new SendMessage(update.getCallbackQuery().getMessage().getChatId(), PropManager.getMessage("empty_message")));
+            } catch (TelegramApiException e) {
+                e.printStackTrace();
+            }
+        } else {
+            try {
+                execute(new SendMessage(update.getCallbackQuery().getMessage().getChatId(), PropManager.getMessage("non_command")));
+            } catch (TelegramApiException e) {
+                e.printStackTrace();
+            }
+        }
+
+    }
+
+    private void processCallbackQuery(CallbackQuery query) {
+
+    }
+
+    private void processUserAnswer(Message message) {
+        int code;
+        switch (UsersRep.getInstance().getUserState(message.getFrom())) {
+            case ENTERING_TRACKING_NUMBER:
+                code = PostTracker.getInstance().createTracking(message.getFrom(),message.getText(), "ru");
+                if (code==200) {
+                    UsersRep.getInstance().updateUserState(message.getFrom(), UserState.USING_BOT);
+                }
+                break;
+
+            default:
+                break;
         }
     }
 
