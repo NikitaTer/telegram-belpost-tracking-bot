@@ -40,7 +40,9 @@ public class GetAllTrackings extends BotCommand {
                         PropManager.getMessage("get_all_trackings.no_trackings")));
             } else {
 
-                absSender.execute(new SendMessage(chat.getId(), PropManager.getMessage("get_all_trackings")));
+                absSender.execute(
+                        new SendMessage(chat.getId(), PropManager.getMessage("get_all_trackings")).enableHtml(true)
+                );
                 String arrowUp = EmojiParser.parseToUnicode("         :arrow_up:\n");
 
                 for (Item item : tracking.getTrackingData().getItems()) {
@@ -72,7 +74,7 @@ public class GetAllTrackings extends BotCommand {
                         }
                     }
 
-                    absSender.execute(new SendMessage(chat.getId(),sb.toString()));
+                    absSender.execute(new SendMessage(chat.getId(),sb.toString()).enableHtml(true));
                 }
             }
         } catch (TelegramApiException e) {
