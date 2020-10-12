@@ -18,12 +18,12 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GetAllTrackings extends BotCommand {
+public class GetAllTrackingsCommand extends BotCommand {
 
     private static final String IDENTIFIER = "get_all_trackings";
     private static final String DESC = "Выводит данные о всех почтовых отправлениях";
 
-    public GetAllTrackings() {
+    public GetAllTrackingsCommand() {
         super(IDENTIFIER, DESC);
     }
 
