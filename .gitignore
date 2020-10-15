@@ -1,6 +1,6 @@
 .idea/
 .out/
-.target/classes/
+target/
 
 # Contains private data
 data.properties
