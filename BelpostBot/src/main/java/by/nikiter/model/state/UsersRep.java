@@ -1,7 +1,5 @@
 package by.nikiter.model.state;
 
-import by.nikiter.model.ParserJSON;
-import by.nikiter.model.belpost.PostTracker;
 import org.telegram.telegrambots.meta.api.objects.User;
 
 import java.util.HashMap;
@@ -32,6 +30,10 @@ public class UsersRep {
 
     public UserState addUser(User user) {
         return userStateMap.put(user, UserState.USING_BOT);
+    }
+
+    public boolean hasUser(User user) {
+        return userStateMap.get(user) != null;
     }
 
     public UserState getUserState(User user) {

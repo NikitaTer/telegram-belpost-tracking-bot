@@ -21,9 +21,13 @@ public class StartCommand extends BotCommand {
     @Override
     public void execute(AbsSender absSender, User user, Chat chat, String[] strings) {
         StringBuilder sb = new StringBuilder();
-        sb.append(PropManager.getMessage("start"));
 
-        UsersRep.getInstance().addUser(user);
+        if (UsersRep.getInstance().hasUser(user)) {
+            sb.append(PropManager.getMessage("start.already"));
+        } else {
+            sb.append(PropManager.getMessage("start"));
+            UsersRep.getInstance().addUser(user);
+        }
 
         try {
             absSender.execute(new SendMessage(chat.getId(), sb.toString()));

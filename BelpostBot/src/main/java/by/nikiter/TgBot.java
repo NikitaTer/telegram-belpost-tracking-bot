@@ -64,13 +64,13 @@ public class TgBot extends TelegramLongPollingCommandBot {
             processUserAnswer(update.getMessage());
         } else if (!update.hasMessage() || !update.getMessage().hasText()) {
             try {
-                execute(new SendMessage(update.getCallbackQuery().getMessage().getChatId(), PropManager.getMessage("empty_message")));
+                execute(new SendMessage(update.getMessage().getChatId(), PropManager.getMessage("empty_message")));
             } catch (TelegramApiException e) {
                 e.printStackTrace();
             }
         } else {
             try {
-                execute(new SendMessage(update.getCallbackQuery().getMessage().getChatId(), PropManager.getMessage("non_command")));
+                execute(new SendMessage(update.getMessage().getChatId(), PropManager.getMessage("non_command")));
             } catch (TelegramApiException e) {
                 e.printStackTrace();
             }
@@ -83,17 +83,48 @@ public class TgBot extends TelegramLongPollingCommandBot {
     }
 
     private void processUserAnswer(Message message) {
-        int code;
-        switch (UsersRep.getInstance().getUserState(message.getFrom())) {
-            case ENTERING_TRACKING_NUMBER:
-                code = PostTracker.getInstance().createTracking(message.getFrom(),message.getText(), "ru");
-                if (code==200) {
-                    UsersRep.getInstance().updateUserState(message.getFrom(), UserState.USING_BOT);
-                }
-                break;
+        try {
+            switch (UsersRep.getInstance().getUserState(message.getFrom())) {
+                case ENTERING_TRACKING_NUMBER:
+                    switch (
+                            PostTracker.getInstance().createTracking(message.getFrom(), message.getText(), "ru")
+                    ) {
+                        case 200:
+                            execute(
+                                    new SendMessage(message.getChatId(),
+                                            PropManager.getMessage("add_tracking.added"))
+                            );
+                            break;
 
-            default:
-                break;
+                        case 4016:
+                            if (
+                                    PostTracker.getInstance().hasTrackingNumbers(message.getFrom()) &&
+                                    PostTracker.getInstance().getAllTrackingNumbers(message.getFrom())
+                                    .contains(message.getText())) {
+                                execute(
+                                        new SendMessage(message.getChatId(),
+                                        PropManager.getMessage("add_tracking.already"))
+                                );
+                            } else {
+                                PostTracker.getInstance().addTracking(message.getFrom(),message.getText());
+                                execute(
+                                        new SendMessage(message.getChatId(),
+                                                PropManager.getMessage("add_tracking.added"))
+                                );
+                            }
+                            break;
+
+                        default:
+                            break;
+                    }
+                    UsersRep.getInstance().updateUserState(message.getFrom(), UserState.USING_BOT);
+                    break;
+
+                default:
+                    break;
+            }
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
         }
     }
 

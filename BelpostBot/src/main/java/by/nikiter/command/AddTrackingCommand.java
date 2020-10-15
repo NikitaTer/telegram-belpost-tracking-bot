@@ -21,13 +21,11 @@ public class AddTrackingCommand extends BotCommand {
 
     @Override
     public void execute(AbsSender absSender, User user, Chat chat, String[] strings) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(PropManager.getMessage("add_tracking"));
 
         UsersRep.getInstance().updateUserState(user, UserState.ENTERING_TRACKING_NUMBER);
 
         try {
-            absSender.execute(new SendMessage(chat.getId(), sb.toString()));
+            absSender.execute(new SendMessage(chat.getId(), PropManager.getMessage("add_tracking.enter")));
         } catch (TelegramApiException e) {
             e.printStackTrace();
         }

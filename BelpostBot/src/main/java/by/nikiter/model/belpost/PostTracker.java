@@ -1,9 +1,6 @@
 package by.nikiter.model.belpost;
 
-import by.nikiter.model.ParserJSON;
 import by.nikiter.model.PropManager;
-import com.google.inject.internal.cglib.core.$Customizer;
-import com.google.inject.internal.cglib.core.$MethodWrapper;
 import org.telegram.telegrambots.meta.api.objects.User;
 
 import java.io.BufferedReader;
@@ -52,7 +49,11 @@ public class PostTracker {
         return trackers.get(user);
     }
 
-    public String getAllTracking(User user, String language) {
+    public boolean hasTrackingNumbers(User user) {
+        return trackers.get(user) != null && trackers.get(user).size() != 0;
+    }
+
+    public String getAllTrackings(User user, String language) {
         if (!trackers.containsKey(user)) {
             return "ERROR: У вас нет никаких трекеров";
         }
@@ -72,7 +73,7 @@ public class PostTracker {
 
     public int createTracking(User user, String trackingNumber, String language) {
         if (checkContainsTracker(user,trackingNumber)) {
-            return 0;
+            return 4016;
         }
 
         String reqUrl="http://api.trackingmore.com/v2/trackings/post";
@@ -82,7 +83,6 @@ public class PostTracker {
                 "\",\"carrier_code\":\"" + belpost_code +
                 "\",\"lang\":\"" + language + "\"}";
         bodyParams.add(sb);
-        addTracker(user,trackingNumber);
 
         String result = sendPost(reqUrl,headParams,bodyParams,"POST");
 
@@ -99,12 +99,11 @@ public class PostTracker {
         return -1;
     }
 
-    private void addTracker(User user, String trackingNumber) {
+    public void addTracking(User user, String trackingNumber) {
         if (!checkContainsUser(user)) {
             trackers.put(user,new ArrayList<>());
-        }
-
-        if (!checkContainsTracker(user, trackingNumber)) {
+            trackers.get(user).add(trackingNumber);
+        } else if (!checkContainsTracker(user, trackingNumber)) {
             trackers.get(user).add(trackingNumber);
         }
     }
