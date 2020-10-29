@@ -26,12 +26,10 @@ public class HelpCommand extends BotCommand {
 
         StringBuilder sb = new StringBuilder();
 
-        sb.append(PropManager.getMessage("help.start"));
+        sb.append(PropManager.getMessage("help"));
 
         commandRegistry.getRegisteredCommands().forEach(cmd -> sb
                 .append(cmd.toString()).append("\n\n"));
-
-        sb.append(PropManager.getMessage("help.end"));
 
         try {
             absSender.execute(new SendMessage(chat.getId(),sb.toString()).enableHtml(true));
