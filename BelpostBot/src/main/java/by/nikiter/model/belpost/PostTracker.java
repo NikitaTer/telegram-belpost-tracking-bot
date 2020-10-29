@@ -78,7 +78,7 @@ public class PostTracker {
      * @deprecated
      */
     public int createTracking(User user, String trackingNumber, String language) {
-        if (checkContainsTracker(user,trackingNumber)) {
+        if (isContainsTracker(user,trackingNumber)) {
             return 4016;
         }
 
@@ -106,19 +106,27 @@ public class PostTracker {
     }
 
     public void addUserTracking(User user, String trackingNumber) {
-        if (!checkContainsUser(user)) {
+        if (!hasUser(user)) {
             userTrackingsMap.put(user,new ArrayList<>());
             userTrackingsMap.get(user).add(trackingNumber);
-        } else if (!checkContainsTracker(user, trackingNumber)) {
+        } else if (!isContainsTracker(user, trackingNumber)) {
             userTrackingsMap.get(user).add(trackingNumber);
         }
     }
 
-    public boolean checkContainsTracker(User user, String trackingNumber) {
+    public boolean deleteTracking(User user, String trackingNumber) {
+        if (isContainsTracker(user,trackingNumber)) {
+            return userTrackingsMap.get(user).remove(trackingNumber);
+        } else {
+            return false;
+        }
+    }
+
+    public boolean isContainsTracker(User user, String trackingNumber) {
         return userTrackingsMap.containsKey(user) && userTrackingsMap.get(user).contains(trackingNumber);
     }
 
-    public boolean checkContainsUser(User user) {
+    public boolean hasUser(User user) {
         return userTrackingsMap.containsKey(user);
     }
 
