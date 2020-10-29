@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
 public class PostTracker {
 
     private final Map<String, String> headParams;
-    private final Map<User, List<String>> trackers;
+    private final Map<User, List<String>> userTrackingsMap;
     private static final String belpost_code="belpochta";
 
     private static volatile PostTracker instance = null;
@@ -42,25 +42,28 @@ public class PostTracker {
         headParams.put("Trackingmore-Api-Key", PropManager.getData("trackingmore.api"));
         headParams.put("Content-Type", "application/json");
 
-        trackers = new HashMap<User, List<String>>();
+        userTrackingsMap = new HashMap<User, List<String>>();
     }
 
-    public List<String> getAllTrackingNumbers(User user) {
-        return trackers.get(user);
+    public List<String> getAllTrackings(User user) {
+        return userTrackingsMap.get(user);
     }
 
-    public boolean hasTrackingNumbers(User user) {
-        return trackers.get(user) != null && trackers.get(user).size() != 0;
+    public boolean hasTrackings(User user) {
+        return userTrackingsMap.get(user) != null && userTrackingsMap.get(user).size() != 0;
     }
 
+    /**
+     * @deprecated
+     */
     public String getAllTrackings(User user, String language) {
-        if (!trackers.containsKey(user)) {
+        if (!userTrackingsMap.containsKey(user)) {
             return "ERROR: У вас нет никаких трекеров";
         }
 
         StringBuilder trackingNumbers = new StringBuilder();
 
-        for (String num : trackers.get(user)) {
+        for (String num : userTrackingsMap.get(user)) {
             trackingNumbers.append(num).append(",");
         }
         trackingNumbers.deleteCharAt(trackingNumbers.length() - 1);
@@ -71,6 +74,9 @@ public class PostTracker {
         return sendPost(reqURL,headParams,new ArrayList<String>(),"GET");
     }
 
+    /**
+     * @deprecated
+     */
     public int createTracking(User user, String trackingNumber, String language) {
         if (checkContainsTracker(user,trackingNumber)) {
             return 4016;
@@ -99,23 +105,26 @@ public class PostTracker {
         return -1;
     }
 
-    public void addTracking(User user, String trackingNumber) {
+    public void addUserTracking(User user, String trackingNumber) {
         if (!checkContainsUser(user)) {
-            trackers.put(user,new ArrayList<>());
-            trackers.get(user).add(trackingNumber);
+            userTrackingsMap.put(user,new ArrayList<>());
+            userTrackingsMap.get(user).add(trackingNumber);
         } else if (!checkContainsTracker(user, trackingNumber)) {
-            trackers.get(user).add(trackingNumber);
+            userTrackingsMap.get(user).add(trackingNumber);
         }
     }
 
-    private boolean checkContainsTracker(User user, String trackingNumber) {
-        return trackers.containsKey(user) && trackers.get(user).contains(trackingNumber);
+    public boolean checkContainsTracker(User user, String trackingNumber) {
+        return userTrackingsMap.containsKey(user) && userTrackingsMap.get(user).contains(trackingNumber);
     }
 
-    private boolean checkContainsUser(User user) {
-        return trackers.containsKey(user);
+    public boolean checkContainsUser(User user) {
+        return userTrackingsMap.containsKey(user);
     }
 
+    /**
+     * @deprecated
+     */
     private String sendPost(String url, Map<String, String> headerParams , List<String> bodyParams,String mothod) {
         OutputStreamWriter out = null;
         BufferedReader in = null;
@@ -170,6 +179,9 @@ public class PostTracker {
         return result.toString();
     }
 
+    /**
+     * @deprecated
+     */
     private String sendGet(String url, Map<String, String> headerParams,String mothod) {
         String result = "";
         BufferedReader in = null;
