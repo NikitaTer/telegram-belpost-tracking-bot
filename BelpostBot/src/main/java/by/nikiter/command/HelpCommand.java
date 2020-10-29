@@ -1,6 +1,8 @@
 package by.nikiter.command;
 
 import by.nikiter.model.PropManager;
+import by.nikiter.model.state.UserState;
+import by.nikiter.model.state.UsersRep;
 import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
 import org.telegram.telegrambots.extensions.bots.commandbot.commands.ICommandRegistry;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -24,8 +26,9 @@ public class HelpCommand extends BotCommand {
     @Override
     public void execute(AbsSender absSender, User user, Chat chat, String[] strings) {
 
-        StringBuilder sb = new StringBuilder();
+        UsersRep.getInstance().updateUserState(user, UserState.USING_BOT);
 
+        StringBuilder sb = new StringBuilder();
         sb.append(PropManager.getMessage("help"));
 
         commandRegistry.getRegisteredCommands().forEach(cmd -> sb
