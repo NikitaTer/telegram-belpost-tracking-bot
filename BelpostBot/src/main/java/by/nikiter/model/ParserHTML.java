@@ -18,7 +18,7 @@ public class ParserHTML {
             Elements tables = doc.select("table");
 
             if (tables.size() < 3) {
-                return "ERROR";
+                return PropManager.getMessage("tracking_message.html.no_info");
             }
 
             sb = new StringBuilder();
