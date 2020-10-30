@@ -1,6 +1,7 @@
 package by.nikiter;
 
 import by.nikiter.command.*;
+import by.nikiter.model.ParserHTML;
 import by.nikiter.model.PropManager;
 import by.nikiter.model.belpost.PostTracker;
 import by.nikiter.model.state.UserState;
@@ -91,6 +92,7 @@ public class TgBot extends TelegramLongPollingCommandBot {
         switch (UsersRep.getInstance().getUserState(query.getFrom())) {
             case DELETING_TRACKING:
                 if (PostTracker.getInstance().deleteTracking(query.getFrom(),query.getData())) {
+                    ParserHTML.getInstance().stopUpdating(query.getData());
                     execute(new SendMessage(
                             query.getMessage().getChatId(),
                             PropManager.getMessage("delete_tracking.done").replaceAll("%num%",query.getData())

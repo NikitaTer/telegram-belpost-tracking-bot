@@ -1,7 +1,11 @@
 package by.nikiter.model.belpost;
 
+import by.nikiter.TgBot;
 import by.nikiter.model.PropManager;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -20,7 +24,13 @@ public class PostTracker {
 
     private final Map<String, String> headParams;
     private final Map<User, List<String>> userTrackingsMap;
+    //TODO: Перенести userChatMap в UsersRep
+    private final Map<User, Chat> userChatMap;
+    private final Map<String, String> trackingLastEventMap;
+
     private static final String belpost_code="belpochta";
+
+    private TgBot bot;
 
     private static volatile PostTracker instance = null;
 
@@ -43,6 +53,12 @@ public class PostTracker {
         headParams.put("Content-Type", "application/json");
 
         userTrackingsMap = new HashMap<User, List<String>>();
+        trackingLastEventMap = new HashMap<String, String>();
+        userChatMap = new HashMap<User, Chat>();
+    }
+
+    public void setBot(TgBot bot) {
+        this.bot = bot;
     }
 
     public List<String> getAllTrackings(User user) {
@@ -122,12 +138,51 @@ public class PostTracker {
         }
     }
 
+    public void addUserChat(User user, Chat chat) {
+        userChatMap.put(user,chat);
+    }
+
     public boolean isContainsTracker(User user, String trackingNumber) {
         return userTrackingsMap.containsKey(user) && userTrackingsMap.get(user).contains(trackingNumber);
     }
 
     public boolean hasUser(User user) {
         return userTrackingsMap.containsKey(user);
+    }
+
+    public void updateTrackingInfo(String trackingNum, String lastEvent) {
+        if (!trackingLastEventMap.containsKey(trackingNum)) {
+            trackingLastEventMap.put(trackingNum,lastEvent);
+        } else {
+            if (!trackingLastEventMap.get(trackingNum).equals(lastEvent)) {
+                trackingLastEventMap.replace(trackingNum,lastEvent);
+                StringBuilder sb = new StringBuilder();
+                sb.append(PropManager.getMessage("info_update").replaceAll("%num%",trackingNum)).append("\n");
+                sb.append(lastEvent);
+
+                getChatsIds(trackingNum).forEach((chatId) -> {
+                    try {
+                        bot.execute(new SendMessage(chatId,sb.toString()));
+                    } catch (TelegramApiException e) {
+                        e.printStackTrace();
+                    }
+                });
+            }
+        }
+    }
+
+    private List<Long> getChatsIds(String trackingNum) {
+        List<Long> ids = new ArrayList<>();
+
+        userTrackingsMap.forEach((u,trs) -> {
+            trs.forEach((tr) -> {
+                if (trackingNum.equals(tr)) {
+                    ids.add(userChatMap.get(u).getId());
+                }
+            });
+        });
+
+        return ids;
     }
 
     /**
