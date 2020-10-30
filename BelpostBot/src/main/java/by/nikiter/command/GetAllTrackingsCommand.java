@@ -37,8 +37,10 @@ public class GetAllTrackingsCommand extends BotCommand {
                     sb.append(PropManager.getMessage("tracking_message.tracking_number"))
                             .append(trackingNum).append("\n")
                             .append(PropManager.getMessage("tracking_message.tracking_info")).append("\n\n")
-                            .append(ParserHTML.getTrackingMessage(trackingNum));
+                            .append(ParserHTML.getInstance().getTrackingMessage(trackingNum));
                     absSender.execute(new SendMessage(chat.getId(),sb.toString()).enableHtml(true));
+                    //TODO: Проверить/доделать стстему обновлений
+                    ParserHTML.getInstance().startUpdating(trackingNum);
                 }
             }
 
