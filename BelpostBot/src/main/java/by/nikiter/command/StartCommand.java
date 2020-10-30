@@ -1,6 +1,7 @@
 package by.nikiter.command;
 
 import by.nikiter.model.PropManager;
+import by.nikiter.model.belpost.PostTracker;
 import by.nikiter.model.state.UsersRep;
 import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
 import org.telegram.telegrambots.extensions.bots.commandbot.commands.ICommandRegistry;
@@ -36,6 +37,7 @@ public class StartCommand extends BotCommand {
         } else {
             sb.append(PropManager.getMessage("start"));
             UsersRep.getInstance().addUser(user);
+            PostTracker.getInstance().addUserChat(user,chat);
         }
 
         try {
