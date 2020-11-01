@@ -1,9 +1,9 @@
 package by.nikiter.command;
 
 import by.nikiter.model.PropManager;
-import by.nikiter.model.belpost.PostTracker;
-import by.nikiter.model.state.UserState;
-import by.nikiter.model.state.UsersRep;
+import by.nikiter.model.tracker.PostTracker;
+import by.nikiter.model.UserState;
+import by.nikiter.model.UsersRep;
 import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Chat;
@@ -33,10 +33,10 @@ public class DeleteTrackingCommand extends BotCommand {
             if (PostTracker.getInstance().hasTrackings(user)) {
                 message = new SendMessage(chat.getId(),PropManager.getMessage("delete_tracking.choose"))
                         .setReplyMarkup(getKeyboard(PostTracker.getInstance().getAllTrackings(user)));
-                UsersRep.getInstance().updateUserState(user, UserState.DELETING_TRACKING);
+                UsersRep.getInstance().setUserState(user, UserState.DELETING_TRACKING);
             } else {
                 message = new SendMessage(chat.getId(),PropManager.getMessage("no_trackings"));
-                UsersRep.getInstance().updateUserState(user, UserState.USING_BOT);
+                UsersRep.getInstance().setUserState(user, UserState.USING_BOT);
             }
             absSender.execute(message);
         } catch (TelegramApiException e) {

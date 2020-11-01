@@ -1,8 +1,7 @@
 package by.nikiter.command;
 
 import by.nikiter.model.PropManager;
-import by.nikiter.model.belpost.PostTracker;
-import by.nikiter.model.state.UsersRep;
+import by.nikiter.model.UsersRep;
 import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
 import org.telegram.telegrambots.extensions.bots.commandbot.commands.ICommandRegistry;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -36,8 +35,7 @@ public class StartCommand extends BotCommand {
             sb.append(PropManager.getMessage("start.already"));
         } else {
             sb.append(PropManager.getMessage("start"));
-            UsersRep.getInstance().addUser(user);
-            PostTracker.getInstance().addUserChat(user,chat);
+            UsersRep.getInstance().addUser(user, chat);
         }
 
         try {

@@ -1,10 +1,10 @@
 package by.nikiter.command;
 
-import by.nikiter.model.ParserHTML;
+import by.nikiter.model.parser.ParserHTML;
 import by.nikiter.model.PropManager;
-import by.nikiter.model.belpost.PostTracker;
-import by.nikiter.model.state.UserState;
-import by.nikiter.model.state.UsersRep;
+import by.nikiter.model.tracker.PostTracker;
+import by.nikiter.model.UserState;
+import by.nikiter.model.UsersRep;
 import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Chat;
@@ -24,7 +24,7 @@ public class GetAllTrackingsCommand extends BotCommand {
     @Override
     public void execute(AbsSender absSender, User user, Chat chat, String[] strings) {
 
-        UsersRep.getInstance().updateUserState(user, UserState.USING_BOT);
+        UsersRep.getInstance().setUserState(user, UserState.USING_BOT);
 
         try {
 
@@ -37,10 +37,9 @@ public class GetAllTrackingsCommand extends BotCommand {
                     sb.append(PropManager.getMessage("tracking_message.tracking_number"))
                             .append(trackingNum).append("\n")
                             .append(PropManager.getMessage("tracking_message.tracking_info")).append("\n\n")
-                            .append(ParserHTML.getInstance().getTrackingMessage(trackingNum));
+                            .append(ParserHTML.getTrackingMessage(trackingNum));
+                    PostTracker.getInstance().startUpdating(trackingNum);
                     absSender.execute(new SendMessage(chat.getId(),sb.toString()).enableHtml(true));
-                    //TODO: Проверить/доделать стстему обновлений
-                    ParserHTML.getInstance().startUpdating(trackingNum);
                 }
             }
 

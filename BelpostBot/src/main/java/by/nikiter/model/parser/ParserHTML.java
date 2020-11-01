@@ -16,30 +16,10 @@ import java.util.TimerTask;
 
 public class ParserHTML {
 
-    private final static long UPDATE_DELAY = 3_600_000;
 
     private static volatile ParserHTML instance = null;
 
-    private final Map<String,Timer> trackingTimerMap;
-
-    public static ParserHTML getInstance() {
-        if (instance != null) {
-            return instance;
-        }
-
-        synchronized (ParserHTML.class) {
-            if (instance == null) {
-                instance = new ParserHTML();
-            }
-            return instance;
-        }
-    }
-
-    private ParserHTML() {
-        trackingTimerMap = new HashMap<String, Timer>();
-    }
-
-    public synchronized String getTrackingMessage(String trackingNum) {
+    public static synchronized String getTrackingMessage(String trackingNum) {
         StringBuilder sb = new StringBuilder();
         StringBuilder temp;
 
@@ -85,28 +65,7 @@ public class ParserHTML {
         return sb.toString();
     }
 
-    public synchronized void startUpdating(String trackingNum) {
-        if (!trackingTimerMap.containsKey(trackingNum)) {
-            Timer timer = new Timer(trackingNum + " Timer", true);
-            timer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    PostTracker.getInstance().updateTrackingInfo(trackingNum,getLastEvent(trackingNum));
-                }
-            }, UPDATE_DELAY, UPDATE_DELAY);
-            PostTracker.getInstance().updateTrackingInfo(trackingNum,getLastEvent(trackingNum));
-            trackingTimerMap.put(trackingNum, timer);
-        }
-    }
-
-    public synchronized void stopUpdating(String trackingNum) {
-        if (trackingTimerMap.containsKey(trackingNum)) {
-            trackingTimerMap.get(trackingNum).cancel();
-            trackingTimerMap.remove(trackingNum);
-        }
-    }
-
-    private synchronized String getLastEvent(String trackingNum) {
+    public static synchronized  String getLastEvent(String trackingNum) {
         StringBuilder sb = new StringBuilder();
         try {
             Document doc = Jsoup.connect("https://webservices.belpost.by/searchRu/" + trackingNum)

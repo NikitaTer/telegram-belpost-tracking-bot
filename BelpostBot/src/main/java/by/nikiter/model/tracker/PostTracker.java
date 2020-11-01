@@ -1,9 +1,10 @@
 package by.nikiter.model.belpost;
 
 import by.nikiter.TgBot;
+import by.nikiter.model.ParserHTML;
 import by.nikiter.model.PropManager;
+import by.nikiter.model.state.UsersRep;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
@@ -13,10 +14,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,11 +22,11 @@ public class PostTracker {
 
     private final Map<String, String> headParams;
     private final Map<User, List<String>> userTrackingsMap;
-    //TODO: Перенести userChatMap в UsersRep
-    private final Map<User, Chat> userChatMap;
     private final Map<String, String> trackingLastEventMap;
+    private final Map<String, Timer> trackingTimerMap;
 
-    private static final String belpost_code="belpochta";
+    private final static long UPDATE_DELAY = 3_600_000;
+    private final static String BEL_CODE ="belpochta";
 
     private TgBot bot;
 
@@ -54,7 +52,7 @@ public class PostTracker {
 
         userTrackingsMap = new HashMap<User, List<String>>();
         trackingLastEventMap = new HashMap<String, String>();
-        userChatMap = new HashMap<User, Chat>();
+        trackingTimerMap = new HashMap<String, Timer>();
     }
 
     public void setBot(TgBot bot) {
@@ -66,88 +64,70 @@ public class PostTracker {
     }
 
     public boolean hasTrackings(User user) {
-        return userTrackingsMap.get(user) != null && userTrackingsMap.get(user).size() != 0;
+        return userTrackingsMap.containsKey(user) && userTrackingsMap.get(user).size() != 0;
     }
 
-    /**
-     * @deprecated
-     */
-    public String getAllTrackings(User user, String language) {
-        if (!userTrackingsMap.containsKey(user)) {
-            return "ERROR: У вас нет никаких трекеров";
-        }
-
-        StringBuilder trackingNumbers = new StringBuilder();
-
-        for (String num : userTrackingsMap.get(user)) {
-            trackingNumbers.append(num).append(",");
-        }
-        trackingNumbers.deleteCharAt(trackingNumbers.length() - 1);
-
-        String reqURL = "http://api.trackingmore.com/v2/trackings/get" +
-                "?numbers=" + trackingNumbers.toString() +
-                "&lang=" + language;
-        return sendPost(reqURL,headParams,new ArrayList<String>(),"GET");
+    public boolean hasTracking(User user, String trackingNumber) {
+        return userTrackingsMap.containsKey(user) && userTrackingsMap.get(user).contains(trackingNumber);
     }
 
-    /**
-     * @deprecated
-     */
-    public int createTracking(User user, String trackingNumber, String language) {
-        if (isContainsTracker(user,trackingNumber)) {
-            return 4016;
-        }
-
-        String reqUrl="http://api.trackingmore.com/v2/trackings/post";
-        List<String> bodyParams = new ArrayList<String>();
-
-        String sb = "{\"tracking_number\": \"" + trackingNumber +
-                "\",\"carrier_code\":\"" + belpost_code +
-                "\",\"lang\":\"" + language + "\"}";
-        bodyParams.add(sb);
-
-        String result = sendPost(reqUrl,headParams,bodyParams,"POST");
-
-        Matcher matcher = Pattern.compile("\"code\":[0-9]+,").matcher(result);
-        if (matcher.find()) {
-            result = result.substring(matcher.start(), matcher.end());
-
-            matcher = Pattern.compile("[0-9]+").matcher(result);
-            if (matcher.find()) {
-                result = result.substring(matcher.start(),matcher.end());
-                return Integer.parseInt(result);
+    public boolean hasTracking(String trackingNumber) {
+        boolean isContained = false;
+        for (List<String> trs : userTrackingsMap.values()) {
+            if (trs.contains(trackingNumber)) {
+                isContained = true;
+                break;
             }
         }
-        return -1;
+        return isContained;
     }
 
-    public void addUserTracking(User user, String trackingNumber) {
-        if (!hasUser(user)) {
+    public void addTracking(User user, String trackingNumber) {
+        if (!userTrackingsMap.containsKey(user)) {
             userTrackingsMap.put(user,new ArrayList<>());
             userTrackingsMap.get(user).add(trackingNumber);
-        } else if (!isContainsTracker(user, trackingNumber)) {
+        } else if (!hasTracking(user, trackingNumber)) {
             userTrackingsMap.get(user).add(trackingNumber);
         }
     }
 
     public boolean deleteTracking(User user, String trackingNumber) {
-        if (isContainsTracker(user,trackingNumber)) {
-            return userTrackingsMap.get(user).remove(trackingNumber);
+        if (hasTracking(user,trackingNumber)) {
+            userTrackingsMap.get(user).remove(trackingNumber);
+            if (!hasTracking(trackingNumber)) {
+                stopUpdating(trackingNumber);
+            }
+            return true;
         } else {
             return false;
         }
     }
 
-    public void addUserChat(User user, Chat chat) {
-        userChatMap.put(user,chat);
+    public synchronized void startUpdating(String trackingNum) {
+
+        Timer timer = new Timer(trackingNum + " Timer", true);
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                updateTrackingInfo(trackingNum, ParserHTML.getLastEvent(trackingNum));
+            }
+        }, UPDATE_DELAY, UPDATE_DELAY);
+        updateTrackingInfo(trackingNum,ParserHTML.getLastEvent(trackingNum));
+
+        if (!trackingTimerMap.containsKey(trackingNum)) {
+            trackingTimerMap.put(trackingNum, timer);
+        } else {
+            trackingTimerMap.get(trackingNum).cancel();
+            trackingTimerMap.replace(trackingNum,timer);
+        }
     }
 
-    public boolean isContainsTracker(User user, String trackingNumber) {
-        return userTrackingsMap.containsKey(user) && userTrackingsMap.get(user).contains(trackingNumber);
-    }
-
-    public boolean hasUser(User user) {
-        return userTrackingsMap.containsKey(user);
+    public synchronized void stopUpdating(String trackingNum) {
+        if (trackingTimerMap.containsKey(trackingNum)) {
+            trackingTimerMap.get(trackingNum).cancel();
+            trackingTimerMap.remove(trackingNum);
+            trackingLastEventMap.remove(trackingNum);
+        }
     }
 
     public void updateTrackingInfo(String trackingNum, String lastEvent) {
@@ -177,12 +157,65 @@ public class PostTracker {
         userTrackingsMap.forEach((u,trs) -> {
             trs.forEach((tr) -> {
                 if (trackingNum.equals(tr)) {
-                    ids.add(userChatMap.get(u).getId());
+                    ids.add(UsersRep.getInstance().getChat(u).getId());
                 }
             });
         });
 
         return ids;
+    }
+
+
+    /**
+     * @deprecated
+     */
+    public String getAllTrackings(User user, String language) {
+        if (!userTrackingsMap.containsKey(user)) {
+            return "ERROR: У вас нет никаких трекеров";
+        }
+
+        StringBuilder trackingNumbers = new StringBuilder();
+
+        for (String num : userTrackingsMap.get(user)) {
+            trackingNumbers.append(num).append(",");
+        }
+        trackingNumbers.deleteCharAt(trackingNumbers.length() - 1);
+
+        String reqURL = "http://api.trackingmore.com/v2/trackings/get" +
+                "?numbers=" + trackingNumbers.toString() +
+                "&lang=" + language;
+        return sendPost(reqURL,headParams,new ArrayList<String>(),"GET");
+    }
+
+    /**
+     * @deprecated
+     */
+    public int createTracking(User user, String trackingNumber, String language) {
+        if (hasTracking(user,trackingNumber)) {
+            return 4016;
+        }
+
+        String reqUrl="http://api.trackingmore.com/v2/trackings/post";
+        List<String> bodyParams = new ArrayList<String>();
+
+        String sb = "{\"tracking_number\": \"" + trackingNumber +
+                "\",\"carrier_code\":\"" + BEL_CODE +
+                "\",\"lang\":\"" + language + "\"}";
+        bodyParams.add(sb);
+
+        String result = sendPost(reqUrl,headParams,bodyParams,"POST");
+
+        Matcher matcher = Pattern.compile("\"code\":[0-9]+,").matcher(result);
+        if (matcher.find()) {
+            result = result.substring(matcher.start(), matcher.end());
+
+            matcher = Pattern.compile("[0-9]+").matcher(result);
+            if (matcher.find()) {
+                result = result.substring(matcher.start(),matcher.end());
+                return Integer.parseInt(result);
+            }
+        }
+        return -1;
     }
 
     /**
