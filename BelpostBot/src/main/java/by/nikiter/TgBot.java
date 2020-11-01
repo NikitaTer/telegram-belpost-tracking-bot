@@ -1,11 +1,10 @@
 package by.nikiter;
 
 import by.nikiter.command.*;
-import by.nikiter.model.ParserHTML;
 import by.nikiter.model.PropManager;
-import by.nikiter.model.belpost.PostTracker;
-import by.nikiter.model.state.UserState;
-import by.nikiter.model.state.UsersRep;
+import by.nikiter.model.tracker.PostTracker;
+import by.nikiter.model.UserState;
+import by.nikiter.model.UsersRep;
 import org.telegram.telegrambots.ApiContextInitializer;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.extensions.bots.commandbot.TelegramLongPollingCommandBot;
@@ -54,6 +53,8 @@ public class TgBot extends TelegramLongPollingCommandBot {
             }
             helpCommand.execute(absSender, message.getFrom(), message.getChat(), new String[]{});
         });
+
+        PostTracker.getInstance().setBot(this);
     }
 
     @Override
@@ -92,7 +93,6 @@ public class TgBot extends TelegramLongPollingCommandBot {
         switch (UsersRep.getInstance().getUserState(query.getFrom())) {
             case DELETING_TRACKING:
                 if (PostTracker.getInstance().deleteTracking(query.getFrom(),query.getData())) {
-                    ParserHTML.getInstance().stopUpdating(query.getData());
                     execute(new SendMessage(
                             query.getMessage().getChatId(),
                             PropManager.getMessage("delete_tracking.done").replaceAll("%num%",query.getData())
@@ -112,13 +112,13 @@ public class TgBot extends TelegramLongPollingCommandBot {
                 StringBuilder sb = new StringBuilder();
                 if (matcher.find()) {
                     do {
-                        if (PostTracker.getInstance().isContainsTracker(message.getFrom(),matcher.group())) {
+                        if (PostTracker.getInstance().hasTracking(message.getFrom(),matcher.group())) {
                             sb.append(
                                     PropManager.getMessage("add_tracking.already")
                                             .replaceAll("%num%",matcher.group())
                             ).append("\n");
                         } else {
-                            PostTracker.getInstance().addUserTracking(message.getFrom(), matcher.group());
+                            PostTracker.getInstance().addTracking(message.getFrom(), matcher.group());
                             sb.append(
                                     PropManager.getMessage("add_tracking.added")
                                             .replaceAll("%num%", matcher.group())
@@ -128,7 +128,7 @@ public class TgBot extends TelegramLongPollingCommandBot {
                 } else {
                     sb.append(PropManager.getMessage("add_tracking.failed"));
                 }
-                UsersRep.getInstance().updateUserState(message.getFrom(), UserState.USING_BOT);
+                UsersRep.getInstance().setUserState(message.getFrom(), UserState.USING_BOT);
                 execute(new SendMessage(message.getChatId(),sb.toString()));
                 break;
 
