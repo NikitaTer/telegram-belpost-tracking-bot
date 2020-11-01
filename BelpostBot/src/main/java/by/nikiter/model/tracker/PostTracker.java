@@ -1,9 +1,9 @@
-package by.nikiter.model.belpost;
+package by.nikiter.model.tracker;
 
 import by.nikiter.TgBot;
-import by.nikiter.model.ParserHTML;
+import by.nikiter.model.parser.ParserHTML;
 import by.nikiter.model.PropManager;
-import by.nikiter.model.state.UsersRep;
+import by.nikiter.model.UsersRep;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;

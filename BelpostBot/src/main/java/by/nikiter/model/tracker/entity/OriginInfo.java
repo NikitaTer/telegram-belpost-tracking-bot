@@ -1,4 +1,4 @@
-package by.nikiter.model.belpost.entity;
+package by.nikiter.model.tracker.entity;
 
 import java.util.List;
 import com.fasterxml.jackson.annotation.JsonInclude;
