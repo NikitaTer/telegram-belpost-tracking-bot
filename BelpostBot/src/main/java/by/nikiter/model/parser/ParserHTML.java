@@ -1,18 +1,13 @@
-package by.nikiter.model;
+package by.nikiter.model.parser;
 
-import by.nikiter.model.belpost.PostTracker;
+import by.nikiter.model.PropManager;
 import com.vdurmont.emoji.EmojiParser;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import sun.awt.Mutex;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class ParserHTML {
 

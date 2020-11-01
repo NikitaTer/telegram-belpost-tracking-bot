@@ -1,20 +1,8 @@
-package by.nikiter.model;
+package by.nikiter.model.parser;
 
-import by.nikiter.model.belpost.entity.Tracking;
+import by.nikiter.model.tracker.entity.Tracking;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jdk.nashorn.internal.parser.JSONParser;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class ParserJSON {
 
