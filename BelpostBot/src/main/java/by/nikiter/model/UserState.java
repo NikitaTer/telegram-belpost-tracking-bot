@@ -1,4 +1,4 @@
-package by.nikiter.model.state;
+package by.nikiter.model;
 
 public enum UserState {
     USING_BOT("USING", "Using bot"),

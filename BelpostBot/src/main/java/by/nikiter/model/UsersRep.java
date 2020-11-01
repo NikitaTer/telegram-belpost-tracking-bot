@@ -1,6 +1,5 @@
-package by.nikiter.model.state;
+package by.nikiter.model;
 
-import by.nikiter.model.UserChat;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 
