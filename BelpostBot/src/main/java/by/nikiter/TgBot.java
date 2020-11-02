@@ -17,6 +17,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 
+import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -41,7 +42,7 @@ public class TgBot extends TelegramLongPollingCommandBot {
 
         register(new StartCommand(this));
         register(helpCommand);
-        register(new AddTrackingCommand());
+        register(new AddTrackingsCommand());
         register(new DeleteTrackingCommand());
         register(new GetAllTrackingsCommand());
 
@@ -114,19 +115,19 @@ public class TgBot extends TelegramLongPollingCommandBot {
                     do {
                         if (PostTracker.getInstance().hasTracking(message.getFrom(),matcher.group())) {
                             sb.append(
-                                    PropManager.getMessage("add_tracking.already")
+                                    PropManager.getMessage("add_trackings.already")
                                             .replaceAll("%num%",matcher.group())
                             ).append("\n");
                         } else {
                             PostTracker.getInstance().addTracking(message.getFrom(), matcher.group());
                             sb.append(
-                                    PropManager.getMessage("add_tracking.added")
+                                    PropManager.getMessage("add_trackings.added")
                                             .replaceAll("%num%", matcher.group())
                             ).append("\n");
                         }
                     } while (matcher.find());
                 } else {
-                    sb.append(PropManager.getMessage("add_tracking.failed"));
+                    sb.append(PropManager.getMessage("add_trackings.failed"));
                 }
                 UsersRep.getInstance().setUserState(message.getFrom(), UserState.USING_BOT);
                 execute(new SendMessage(message.getChatId(),sb.toString()));

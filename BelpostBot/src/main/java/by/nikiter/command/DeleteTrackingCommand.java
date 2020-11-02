@@ -19,7 +19,7 @@ import java.util.List;
 public class DeleteTrackingCommand extends BotCommand {
 
     private static final String IDENTIFIER = "delete_tracking";
-    private static final String DESC = "Удалить трэкинг";
+    private static final String DESC = "Удалить отслеживаемое почтовое отправление";
 
     public DeleteTrackingCommand() {
         super(IDENTIFIER, DESC);

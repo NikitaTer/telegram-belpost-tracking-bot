@@ -10,12 +10,12 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-public class AddTrackingCommand extends BotCommand {
+public class AddTrackingsCommand extends BotCommand {
 
-    private static final String IDENTIFIER = "add_tracking";
-    private static final String DESC = "Добавить трэкинг";
+    private static final String IDENTIFIER = "add_trackings";
+    private static final String DESC = "Добавить почтовые отправления для отслеживания";
 
-    public AddTrackingCommand() {
+    public AddTrackingsCommand() {
         super(IDENTIFIER, DESC);
     }
 
@@ -25,7 +25,7 @@ public class AddTrackingCommand extends BotCommand {
         UsersRep.getInstance().setUserState(user, UserState.ENTERING_TRACKING_NUMBER);
 
         try {
-            absSender.execute(new SendMessage(chat.getId(), PropManager.getMessage("add_tracking.enter")));
+            absSender.execute(new SendMessage(chat.getId(), PropManager.getMessage("add_trackings.enter")));
         } catch (TelegramApiException e) {
             e.printStackTrace();
         }
