@@ -11,6 +11,11 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+/**
+ * Command that sends to user list of all bot commands
+ *
+ * @author NikiTer
+ */
 public class HelpCommand extends BotCommand {
 
     private static final String IDENTIFIER = "help";

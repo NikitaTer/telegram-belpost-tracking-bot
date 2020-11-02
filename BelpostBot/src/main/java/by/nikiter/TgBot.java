@@ -21,8 +21,16 @@ import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Telegram bot class
+ * @author NikiTer
+ */
 public class TgBot extends TelegramLongPollingCommandBot {
 
+    /**
+     * Creating and registering bot with default bot options
+     * @see DefaultBotOptions
+     */
     public static void main(String[] args) {
         ApiContextInitializer.init();
 
@@ -35,6 +43,16 @@ public class TgBot extends TelegramLongPollingCommandBot {
         }
     }
 
+    /**
+     * Bot initialization.
+     * Creating and registering commands and default action
+     * @see StartCommand
+     * @see HelpCommand
+     * @see AddTrackingsCommand
+     * @see DeleteTrackingCommand
+     * @see GetAllTrackingsCommand
+     * @see TelegramLongPollingCommandBot#registerDefaultAction(BiConsumer)
+     */
     public TgBot(DefaultBotOptions options) {
         super(options);
 
@@ -58,6 +76,15 @@ public class TgBot extends TelegramLongPollingCommandBot {
         PostTracker.getInstance().setBot(this);
     }
 
+    /**
+     * Method that called when bot receive non-command message.
+     * If message contains callback query call {@link TgBot#processCallbackQuery(CallbackQuery)}
+     * If message contains a response to the bot call {@link TgBot#processUserAnswer(Message)}
+     *
+     * @param update Object that contains non-command message and info about it
+     * @see TgBot#processCallbackQuery(CallbackQuery)
+     * @see TgBot#processUserAnswer(Message)
+     */
     @Override
     public void processNonCommandUpdate(Update update) {
 
@@ -90,6 +117,13 @@ public class TgBot extends TelegramLongPollingCommandBot {
 
     }
 
+    /**
+     * Method that handles callback query according to user state
+     *
+     * @param query callback query
+     * @throws TelegramApiException when bot can't send message
+     * @see UserState
+     */
     private void processCallbackQuery(CallbackQuery query) throws TelegramApiException {
         switch (UsersRep.getInstance().getUserState(query.getFrom())) {
             case DELETING_TRACKING:
@@ -106,6 +140,13 @@ public class TgBot extends TelegramLongPollingCommandBot {
         }
     }
 
+    /**
+     * Method that handles user's response according to its state
+     *
+     * @param message message from user
+     * @throws TelegramApiException when bot can't send message
+     * @see UserState
+     */
     private void processUserAnswer(Message message) throws TelegramApiException {
         switch (UsersRep.getInstance().getUserState(message.getFrom())) {
             case ENTERING_TRACKING_NUMBER:

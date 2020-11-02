@@ -1,5 +1,10 @@
 package by.nikiter.model;
 
+/**
+ * Enumeration of all states in which user can be
+ *
+ * @author NikiTer
+ */
 public enum UserState {
     USING_BOT("USING", "Using bot"),
     DELETING_TRACKING("DEL", "Deleting tracking"),

@@ -6,6 +6,11 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Class that is used to store data about users like chat ids and users states
+ *
+ * @author NikiTer
+ */
 public class UsersRep {
 
     private final Map<UserChat, UserState> userStateMap;

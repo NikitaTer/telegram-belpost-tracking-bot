@@ -12,6 +12,13 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+/**
+ * Command that sends to user info about his trackings
+ *
+ * @author NikiTer
+ * @see ParserHTML#getTrackingMessage(String)
+ * @see PostTracker#startUpdating(String) 
+ */
 public class GetAllTrackingsCommand extends BotCommand {
 
     private static final String IDENTIFIER = "get_all_trackings";
@@ -33,11 +40,18 @@ public class GetAllTrackingsCommand extends BotCommand {
                         PropManager.getMessage("no_trackings")));
             } else {
                 for (String trackingNum : PostTracker.getInstance().getAllTrackings(user)) {
+                    String info = ParserHTML.getTrackingMessage(trackingNum);
+                    if (info == null) {
+                        absSender.execute(new SendMessage(
+                                chat.getId(),PropManager.getMessage("no_response")
+                        ).enableHtml(true));
+                        break;
+                    }
                     StringBuilder sb = new StringBuilder();
                     sb.append(PropManager.getMessage("tracking_message.tracking_number"))
                             .append(trackingNum).append("\n")
                             .append(PropManager.getMessage("tracking_message.tracking_info")).append("\n\n")
-                            .append(ParserHTML.getTrackingMessage(trackingNum));
+                            .append(info);
                     PostTracker.getInstance().startUpdating(trackingNum);
                     absSender.execute(new SendMessage(chat.getId(),sb.toString()).enableHtml(true));
                 }

@@ -15,6 +15,12 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Command that starts dialog between user and bot.
+ * Also creates reply keyboard for user
+ *
+ * @author NikiTer
+ */
 public class StartCommand extends BotCommand {
 
     private static final String IDENTIFIER = "start";
@@ -45,12 +51,17 @@ public class StartCommand extends BotCommand {
         }
     }
 
+    /**
+     * Method that makes reply keyboard out of bot commands
+     *
+     * @return reply keyboard
+     */
     private ReplyKeyboardMarkup getKeyboard() {
         List<KeyboardRow> rows = new ArrayList<>();
 
         KeyboardRow rowFirst = new KeyboardRow();
         rowFirst.add("/help");
-        rowFirst.add("/add_tracking");
+        rowFirst.add("/add_trackings");
         rowFirst.add("/get_all_trackings");
 
         KeyboardRow rowSecond = new KeyboardRow();
