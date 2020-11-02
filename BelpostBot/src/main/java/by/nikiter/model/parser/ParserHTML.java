@@ -1,5 +1,6 @@
-package by.nikiter.model;
+package by.nikiter.model.parser;
 
+import by.nikiter.model.PropManager;
 import com.vdurmont.emoji.EmojiParser;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -10,11 +11,16 @@ import java.io.IOException;
 
 public class ParserHTML {
 
-    public static String getTrackingMessage(String trackingNum) {
+
+    private static volatile ParserHTML instance = null;
+
+    public static synchronized String getTrackingMessage(String trackingNum) {
         StringBuilder sb = new StringBuilder();
+        StringBuilder temp;
 
         try {
-            Document doc = Jsoup.connect("https://webservices.belpost.by/searchRu/" + trackingNum).userAgent("Mozilla").get();
+            Document doc = Jsoup.connect("https://webservices.belpost.by/searchRu/" + trackingNum)
+                    .userAgent("Mozilla").get();
             Elements tables = doc.select("table");
 
             if (tables.size() < 3) {
@@ -51,6 +57,35 @@ public class ParserHTML {
             e.printStackTrace();
         }
 
+        return sb.toString();
+    }
+
+    public static synchronized  String getLastEvent(String trackingNum) {
+        StringBuilder sb = new StringBuilder();
+        try {
+            Document doc = Jsoup.connect("https://webservices.belpost.by/searchRu/" + trackingNum)
+                    .userAgent("Mozilla").get();
+            Elements tables = doc.select("table");
+
+
+            if (tables.size() < 3) {
+                return null;
+            }
+
+            Element lastRow = tables.get(0).select("tr").get(tables.get(0).select("tr").size() - 1);
+            sb = new StringBuilder();
+
+            sb.append("=======================").append("\n")
+                    .append(PropManager.getMessage("tracking_message.html.date"))
+                    .append(lastRow.children().get(0).text()).append("\n")
+                    .append(PropManager.getMessage("tracking_message.html.status"))
+                    .append(lastRow.children().get(1).text()).append("\n")
+                    .append(PropManager.getMessage("tracking_message.html.office"))
+                    .append(lastRow.children().get(2).text()).append("\n")
+                    .append("=======================").append("\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return sb.toString();
     }
 }

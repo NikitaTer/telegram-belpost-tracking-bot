@@ -1,13 +1,10 @@
 package by.nikiter;
 
-import by.nikiter.command.AddTrackingCommand;
-import by.nikiter.command.GetAllTrackingsCommand;
-import by.nikiter.command.HelpCommand;
-import by.nikiter.command.StartCommand;
+import by.nikiter.command.*;
 import by.nikiter.model.PropManager;
-import by.nikiter.model.belpost.PostTracker;
-import by.nikiter.model.state.UserState;
-import by.nikiter.model.state.UsersRep;
+import by.nikiter.model.tracker.PostTracker;
+import by.nikiter.model.UserState;
+import by.nikiter.model.UsersRep;
 import org.telegram.telegrambots.ApiContextInitializer;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.extensions.bots.commandbot.TelegramLongPollingCommandBot;
@@ -20,6 +17,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 
+import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -42,9 +40,10 @@ public class TgBot extends TelegramLongPollingCommandBot {
 
         HelpCommand helpCommand = new HelpCommand(this);
 
-        register(new StartCommand());
+        register(new StartCommand(this));
         register(helpCommand);
-        register(new AddTrackingCommand());
+        register(new AddTrackingsCommand());
+        register(new DeleteTrackingCommand());
         register(new GetAllTrackingsCommand());
 
         registerDefaultAction((absSender, message) -> {
@@ -55,13 +54,19 @@ public class TgBot extends TelegramLongPollingCommandBot {
             }
             helpCommand.execute(absSender, message.getFrom(), message.getChat(), new String[]{});
         });
+
+        PostTracker.getInstance().setBot(this);
     }
 
     @Override
     public void processNonCommandUpdate(Update update) {
 
         if (update.hasCallbackQuery()) {
-            processCallbackQuery(update.getCallbackQuery());
+            try {
+                processCallbackQuery(update.getCallbackQuery());
+            } catch (TelegramApiException e) {
+                e.printStackTrace();
+            }
         } else if (update.hasMessage() && update.getMessage().hasText()
                 && UsersRep.getInstance().getUserState(update.getMessage().getFrom()) != UserState.USING_BOT) {
             try {
@@ -85,8 +90,20 @@ public class TgBot extends TelegramLongPollingCommandBot {
 
     }
 
-    private void processCallbackQuery(CallbackQuery query) {
+    private void processCallbackQuery(CallbackQuery query) throws TelegramApiException {
+        switch (UsersRep.getInstance().getUserState(query.getFrom())) {
+            case DELETING_TRACKING:
+                if (PostTracker.getInstance().deleteTracking(query.getFrom(),query.getData())) {
+                    execute(new SendMessage(
+                            query.getMessage().getChatId(),
+                            PropManager.getMessage("delete_tracking.done").replaceAll("%num%",query.getData())
+                    ));
+                }
+                break;
 
+            default:
+                break;
+        }
     }
 
     private void processUserAnswer(Message message) throws TelegramApiException {
@@ -96,23 +113,23 @@ public class TgBot extends TelegramLongPollingCommandBot {
                 StringBuilder sb = new StringBuilder();
                 if (matcher.find()) {
                     do {
-                        if (PostTracker.getInstance().checkContainsTracker(message.getFrom(),matcher.group())) {
+                        if (PostTracker.getInstance().hasTracking(message.getFrom(),matcher.group())) {
                             sb.append(
-                                    PropManager.getMessage("add_tracking.already")
+                                    PropManager.getMessage("add_trackings.already")
                                             .replaceAll("%num%",matcher.group())
                             ).append("\n");
                         } else {
-                            PostTracker.getInstance().addUserTracking(message.getFrom(), matcher.group());
+                            PostTracker.getInstance().addTracking(message.getFrom(), matcher.group());
                             sb.append(
-                                    PropManager.getMessage("add_tracking.added")
+                                    PropManager.getMessage("add_trackings.added")
                                             .replaceAll("%num%", matcher.group())
                             ).append("\n");
                         }
                     } while (matcher.find());
                 } else {
-                    sb.append(PropManager.getMessage("add_tracking.failed"));
+                    sb.append(PropManager.getMessage("add_trackings.failed"));
                 }
-                UsersRep.getInstance().updateUserState(message.getFrom(), UserState.USING_BOT);
+                UsersRep.getInstance().setUserState(message.getFrom(), UserState.USING_BOT);
                 execute(new SendMessage(message.getChatId(),sb.toString()));
                 break;
 
