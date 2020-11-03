@@ -1,5 +1,5 @@
 .idea/
-.out/
+out/
 target/
 
 # Contains private data
