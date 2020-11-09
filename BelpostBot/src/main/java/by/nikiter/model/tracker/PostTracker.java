@@ -100,7 +100,7 @@ public class PostTracker {
         if (hasTracking(user,trackingNumber)) {
             userTrackingsMap.get(user).remove(trackingNumber);
             if (!hasTracking(trackingNumber)) {
-                stopUpdating(trackingNumber);
+                //stopUpdating(trackingNumber);
             }
             return true;
         } else {
