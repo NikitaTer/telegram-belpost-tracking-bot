@@ -6,16 +6,22 @@ package by.nikiter.model;
  * @author NikiTer
  */
 public enum UserState {
-    USING_BOT("USING", "Using bot"),
-    DELETING_TRACKING("DEL", "Deleting tracking"),
-    ENTERING_TRACKING_NUMBER("ENT_NUM", "User is entering tracking number");
+    USING_BOT(1,"USING_BOT", "User is using bot"),
+    DELETING_TRACKING(2,"DELETING_TRACKING", "User choosing tracking to delete"),
+    ENTERING_TRACKING_NUMBER(3,"ENTERING_TRACKING_NUMBER", "User is entering tracking number");
 
+    private final int code;
     private final String name;
     private final String description;
 
-    UserState(String name, String description) {
+    UserState(int code, String name, String description) {
+        this.code = code;
         this.name = name;
         this.description = description;
+    }
+
+    public int getCode() {
+        return code;
     }
 
     public String getName() {

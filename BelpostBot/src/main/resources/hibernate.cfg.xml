@@ -1,0 +1,25 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-configuration PUBLIC
+    "-//Hibernate/Hibernate Configuration DTD//EN"
+    "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+  <session-factory>
+    <property name="connection.url">jdbc:mysql://localhost:3306/telegram_belpost_bot</property>
+    <property name="connection.driver_class">com.mysql.cj.jdbc.Driver</property>
+    <property name="connection.username">root</property>
+    <property name="connection.password">root</property>
+
+    <property name="dialect">org.hibernate.dialect.MySQLDialect</property>
+    <property name="hibernate.current_session_context_class">thread</property>
+    <property name="hibernate.connection.CharSet">utf8</property>
+    <property name="hibernate.connection.characterEncoding">utf8</property>
+    <property name="hibernate.connection.useUnicode">true</property>
+
+    <property name="hibernate.hbm2ddl.auto">update</property>
+
+    <mapping class="by.nikiter.model.db.entity.StateEntity"/>
+    <mapping class="by.nikiter.model.db.entity.TrackingEntity"/>
+    <mapping class="by.nikiter.model.db.entity.UserEntity"/>
+
+  </session-factory>
+</hibernate-configuration>

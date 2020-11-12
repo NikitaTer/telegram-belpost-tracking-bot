@@ -41,12 +41,12 @@
     <dependency>
       <groupId>org.telegram</groupId>
       <artifactId>telegrambots</artifactId>
-      <version>LATEST</version>
+      <version>4.9.2</version>
     </dependency>
     <dependency>
       <groupId>org.telegram</groupId>
       <artifactId>telegrambotsextensions</artifactId>
-      <version>LATEST</version>
+      <version>4.9.2</version>
     </dependency>
 
     <!-- EMOJI -->
@@ -70,12 +70,32 @@
       <version>1.13.1</version>
     </dependency>
 
+    <!-- MySQL -->
+    <dependency>
+      <groupId>mysql</groupId>
+      <artifactId>mysql-connector-java</artifactId>
+      <version>8.0.22</version>
+    </dependency>
+
+    <!-- Hibernate -->
+    <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-core</artifactId>
+      <version>5.4.23.Final</version>
+    </dependency>
+    <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-entitymanager</artifactId>
+      <version>5.4.23.Final</version>
+    </dependency>
+
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.11</version>
       <scope>test</scope>
     </dependency>
+
   </dependencies>
 
   <build>
