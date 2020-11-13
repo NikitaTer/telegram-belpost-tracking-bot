@@ -12,17 +12,14 @@ public class UserEntity {
     private String username;
 
     @Column(name = "chat_id")
-    private int chatId;
+    private long chatId;
 
     @ManyToOne
     @JoinColumn(name = "state_id")
     private StateEntity state;
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
-    @JoinTable(name = "user_tracking",
-            joinColumns = @JoinColumn(name = "username"),
-            inverseJoinColumns = @JoinColumn(name = "tracking"))
-    private Set<TrackingEntity> trackings = new HashSet<TrackingEntity>();
+    @OneToMany(mappedBy = "user", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
+    private List<UserTrackingEntity> trackings = new ArrayList<UserTrackingEntity>();
 
     public UserEntity() {
     }
@@ -35,11 +32,11 @@ public class UserEntity {
         this.username = username;
     }
 
-    public int getChatId() {
+    public long getChatId() {
         return chatId;
     }
 
-    public void setChatId(int chatId) {
+    public void setChatId(long chatId) {
         this.chatId = chatId;
     }
 
@@ -51,30 +48,44 @@ public class UserEntity {
         this.state = state;
     }
 
-    public Collection<TrackingEntity> getTrackings() {
+    public List<UserTrackingEntity> getTrackings() {
         return trackings;
     }
 
-    public void setTrackings(Set<TrackingEntity> trackings) {
+    public void setTrackings(List<UserTrackingEntity> trackings) {
         this.trackings = trackings;
     }
 
-    public void addTracking(TrackingEntity tracking) {
-        trackings.add(tracking);
-        tracking.getUsers().add(this);
+    public void addTracking(TrackingEntity tracking, String name) {
+        UserTrackingEntity userTracking = new UserTrackingEntity(this,tracking);
+        userTracking.setTrackingName(name);
+        trackings.add(userTracking);
+        tracking.getUsers().add(userTracking);
     }
 
-    public void removeTracking(TrackingEntity trackingEntity) {
-        trackings.remove(trackingEntity);
-        trackingEntity.getUsers().remove(this);
+    public void removeTracking(TrackingEntity tracking) {
+        Iterator<UserTrackingEntity> iterator = trackings.iterator();
+        while (iterator.hasNext()) {
+            UserTrackingEntity currentTracking = iterator.next();
+
+            if (currentTracking.getTracking().getNumber().equals(tracking.getNumber())) {
+                iterator.remove();
+                currentTracking.getTracking().getUsers().remove(currentTracking);
+                currentTracking.setUser(null);
+                currentTracking.setTracking(null);
+            }
+        }
     }
 
     public void removeAllTrackings() {
-        Iterator<TrackingEntity> iterator = trackings.iterator();
+        Iterator<UserTrackingEntity> iterator = trackings.iterator();
         while (iterator.hasNext()) {
-            TrackingEntity tracking = iterator.next();
+            UserTrackingEntity currentTracking = iterator.next();
+
             iterator.remove();
-            tracking.getUsers().remove(this);
+            currentTracking.getTracking().getUsers().remove(currentTracking);
+            currentTracking.setUser(null);
+            currentTracking.setTracking(null);
         }
     }
 
@@ -92,7 +103,7 @@ public class UserEntity {
     public int hashCode() {
         int hash = 7;
         hash = 31 * hash + (username == null ? 0 : username.hashCode());
-        hash = 31 * hash + chatId;
+        hash = (int) (31 * hash + chatId);
         hash = 31 * hash + (state == null ? 0 : state.hashCode());
         return hash;
     }

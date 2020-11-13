@@ -31,16 +31,9 @@ public class StateDao implements BasicDao<StateEntity, Integer> {
     }
 
     @Override
-    public void save(StateEntity state) {
+    public void saveOrUpdate(StateEntity state) {
         session.beginTransaction();
-        session.save(state);
-        session.getTransaction().commit();
-    }
-
-    @Override
-    public void update(StateEntity state) {
-        session.beginTransaction();
-        session.update(state);
+        session.saveOrUpdate(state);
         session.getTransaction().commit();
     }
 
@@ -53,16 +46,19 @@ public class StateDao implements BasicDao<StateEntity, Integer> {
 
     @Override
     public void deleteById(Integer id) {
-        session.beginTransaction();
         StateEntity state = session.find(StateEntity.class, id);
-        session.delete(state);
-        session.getTransaction().commit();
+        if (state != null) {
+            session.beginTransaction();
+            session.delete(state);
+            session.getTransaction().commit();
+        }
     }
 
     @Override
-    public void merge(StateEntity state) {
+    public StateEntity merge(StateEntity state) {
         session.beginTransaction();
-        session.merge(state);
+        StateEntity stateEntity = (StateEntity) session.merge(state);
         session.getTransaction().commit();
+        return stateEntity;
     }
 }

@@ -1,7 +1,6 @@
 package by.nikiter.model.db.service;
 
 import by.nikiter.model.db.SessionUtil;
-import org.telegram.telegrambots.meta.api.objects.User;
 
 public class ServiceManager {
 

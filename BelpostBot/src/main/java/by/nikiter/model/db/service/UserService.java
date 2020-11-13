@@ -4,8 +4,10 @@ import by.nikiter.model.UserState;
 import by.nikiter.model.db.dao.StateDao;
 import by.nikiter.model.db.dao.TrackingDao;
 import by.nikiter.model.db.dao.UserDao;
+import by.nikiter.model.db.entity.StateEntity;
 import by.nikiter.model.db.entity.TrackingEntity;
 import by.nikiter.model.db.entity.UserEntity;
+import by.nikiter.model.db.entity.UserTrackingEntity;
 import org.hibernate.Session;
 
 import java.util.List;
@@ -26,62 +28,76 @@ public class UserService {
         stateDao.setSession(session);
     }
 
-    public UserEntity findByUsername(String username) {
-        return userDao.findById(username);
+    public boolean hasUser(String username) {
+        return userDao.findById(username) != null;
     }
 
-    public List<UserEntity> getAllUsers() {
-        return userDao.findAll();
+    public void addUser(String username, long chatId) {
+        UserEntity user = userDao.findById(username);
+        if (user == null) {
+            user = new UserEntity();
+            user.setUsername(username);
+            user.setChatId(chatId);
+            user.setState(stateDao.findById(UserState.USING_BOT.getCode()));
+        }
+
+        userDao.saveOrUpdate(user);
     }
 
-    public void addUser(UserEntity user) {
-        userDao.save(user);
+    public void updateUser(UserEntity user) {
+        userDao.merge(user);
     }
 
     public void deleteUser(String username) {
         userDao.deleteById(username);
     }
 
-    public Set<TrackingEntity> getAllUsersTrackings(String username) {
+    public List<UserTrackingEntity> getAllTrackings(String username) {
         UserEntity user = userDao.findById(username);
-        return (Set<TrackingEntity>) user.getTrackings();
+        return user.getTrackings();
+    }
+
+    public StateEntity getUserState(String username) {
+        UserEntity user = userDao.findById(username);
+        return user == null ? null : user.getState();
     }
 
     public void changeUserState(String username, UserState state) {
         UserEntity user = userDao.findById(username);
-        user.setState(stateDao.findById(state.getCode()));
-        userDao.update(user);
+        if (UserState.getEnum(user.getState().getName()) != state) {
+            user.setState(stateDao.findById(state.getCode()));
+            updateUser(user);
+        }
     }
 
     public void addTracking(String username, String number, String name) {
-        TrackingEntity tracking = new TrackingEntity();
-        tracking.setNumber(number);
-        tracking.setName(name);
-        tracking.setUpdatable(true);
         UserEntity user = userDao.findById(username);
-        user.addTracking(tracking);
-        userDao.merge(user);
-    }
-
-    public void addTracking(String username, TrackingEntity tracking) {
-        UserEntity user = userDao.findById(username);
-        user.addTracking(tracking);
-        userDao.merge(user);
+        TrackingEntity tracking = trackingDao.findById(number);
+        if (tracking == null) {
+            tracking = new TrackingEntity();
+            tracking.setNumber(number);
+        }
+        user.addTracking(tracking, name);
+        trackingDao.merge(tracking);
     }
 
     public void removeTracking(String username, String number) {
         UserEntity user = userDao.findById(username);
+        if (user == null) {
+            return;
+        }
+
         TrackingEntity tracking = null;
-        for (TrackingEntity tr : user.getTrackings()) {
-            if (tr.getNumber().equals(number)) {
-                tracking = tr;
+        for (UserTrackingEntity currentTracking : user.getTrackings()) {
+            if (currentTracking.getTracking().getNumber().equals(number)) {
+                tracking = currentTracking.getTracking();
                 break;
             }
         }
 
         if (tracking != null) {
             user.removeTracking(tracking);
-            userDao.update(user);
+            updateUser(user);
         }
     }
 }

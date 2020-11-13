@@ -2,10 +2,7 @@ package by.nikiter.model.db.entity;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 @Entity
 @Table(name = "tracking", schema = "telegram_belpost_bot")
@@ -15,20 +12,14 @@ public class TrackingEntity {
     @Column(name = "number")
     private String number;
 
-    @Column(name = "name")
-    private String name;
-
     @Column(name = "last_event")
     private String lastEvent;
-
-    @Column(name = "is_updatable")
-    private boolean isUpdatable;
 
     @Column(name = "updated_at", insertable = false)
     private Timestamp updatedAt;
 
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "trackings")
-    private Set<UserEntity> users = new HashSet<UserEntity>();
+    @OneToMany(mappedBy = "tracking", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
+    private List<UserTrackingEntity> users = new ArrayList<>();
 
     public TrackingEntity() {
     }
@@ -41,28 +32,12 @@ public class TrackingEntity {
         this.number = number;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public String getLastEvent() {
         return lastEvent;
     }
 
     public void setLastEvent(String lastEvent) {
         this.lastEvent = lastEvent;
-    }
-
-    public boolean isUpdatable() {
-        return isUpdatable;
-    }
-
-    public void setUpdatable(boolean updatable) {
-        isUpdatable = updatable;
     }
 
     public Timestamp getUpdatedAt() {
@@ -73,22 +48,44 @@ public class TrackingEntity {
         this.updatedAt = updatedAt;
     }
 
-    public Collection<UserEntity> getUsers() {
+    public List<UserTrackingEntity> getUsers() {
         return users;
     }
 
-    public void setUsers(Set<UserEntity> users) {
+    public void setUsers(List<UserTrackingEntity> users) {
         this.users = users;
     }
 
     public void addUser(UserEntity user) {
-        users.add(user);
-        user.getTrackings().add(this);
+        UserTrackingEntity userTracking = new UserTrackingEntity(user,this);
+        users.add(userTracking);
+        user.getTrackings().add(userTracking);
     }
 
     public void removeUser(UserEntity user) {
-        users.remove(user);
-        user.getTrackings().remove(this);
+        Iterator<UserTrackingEntity> iterator = users.iterator();
+        while (iterator.hasNext()) {
+            UserTrackingEntity currentTracking = iterator.next();
+
+            if (currentTracking.getUser().getUsername().equals(user.getUsername())) {
+                iterator.remove();
+                currentTracking.getUser().getTrackings().remove(currentTracking);
+                currentTracking.setUser(null);
+                currentTracking.setTracking(null);
+            }
+        }
+    }
+
+    public void removeAllUsers() {
+        Iterator<UserTrackingEntity> iterator = users.iterator();
+        while (iterator.hasNext()) {
+            UserTrackingEntity currentTracking = iterator.next();
+
+            iterator.remove();
+            currentTracking.getUser().getTrackings().remove(currentTracking);
+            currentTracking.setUser(null);
+            currentTracking.setTracking(null);
+        }
     }
 
     @Override
@@ -96,8 +93,7 @@ public class TrackingEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         TrackingEntity that = (TrackingEntity) o;
-        return isUpdatable == that.isUpdatable &&
-                number.equals(that.number) &&
+        return number.equals(that.number) &&
                 Objects.equals(lastEvent, that.lastEvent);
     }
 
@@ -106,7 +102,6 @@ public class TrackingEntity {
         int hash = 7;
         hash = 31 * hash + (number == null ? 0 : number.hashCode());
         hash = 31 * hash + (lastEvent == null ? 0 : lastEvent.hashCode());
-        hash = 31 * hash + (!isUpdatable ? 0 : 1);
         return hash;
     }
 
@@ -115,7 +110,6 @@ public class TrackingEntity {
         return "TrackingEntity{" +
                 "number='" + number + '\'' +
                 ", lastEvent='" + lastEvent + '\'' +
-                ", isUpdatable=" + isUpdatable +
                 ", updatedAt=" + updatedAt +
                 '}';
     }

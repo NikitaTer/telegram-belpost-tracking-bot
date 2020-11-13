@@ -24,11 +24,11 @@ public class StateService {
     }
 
     public void addState(StateEntity state) {
-        dao.save(state);
+        dao.saveOrUpdate(state);
     }
 
     public void updateState(StateEntity state) {
-        dao.update(state);
+        dao.merge(state);
     }
 
     public void deleteState(StateEntity state) {

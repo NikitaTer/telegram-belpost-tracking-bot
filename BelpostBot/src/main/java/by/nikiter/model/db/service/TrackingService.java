@@ -2,10 +2,9 @@ package by.nikiter.model.db.service;
 
 import by.nikiter.model.db.dao.TrackingDao;
 import by.nikiter.model.db.entity.TrackingEntity;
-import by.nikiter.model.db.entity.UserEntity;
+import by.nikiter.model.db.entity.UserTrackingEntity;
 import org.hibernate.Session;
 
-import java.util.Collection;
 import java.util.List;
 
 public class TrackingService {
@@ -26,11 +25,11 @@ public class TrackingService {
     }
 
     public void addTracking(TrackingEntity tracking) {
-        dao.save(tracking);
+        dao.saveOrUpdate(tracking);
     }
 
     public void updateTracking(TrackingEntity tracking) {
-        dao.update(tracking);
+        dao.merge(tracking);
     }
 
     public void deleteTracking(TrackingEntity tracking) {
@@ -53,8 +52,8 @@ public class TrackingService {
         }
     }
 
-    public List<UserEntity> getAllUsers(String number) {
+    public List<UserTrackingEntity> getAllUsers(String number) {
         TrackingEntity tracking = dao.findById(number);
-        return (List<UserEntity>) tracking.getUsers();
+        return tracking.getUsers();
     }
 }

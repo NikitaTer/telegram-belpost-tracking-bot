@@ -1,6 +1,5 @@
 package by.nikiter.model.db.dao;
 
-import by.nikiter.model.db.HibernateUtil;
 import by.nikiter.model.db.entity.TrackingEntity;
 import by.nikiter.model.db.entity.UserEntity;
 import org.hibernate.Session;
@@ -33,44 +32,36 @@ public class TrackingDao implements BasicDao<TrackingEntity,String> {
     }
 
     @Override
-    public void save(TrackingEntity tracking) {
+    public void saveOrUpdate(TrackingEntity tracking) {
         session.beginTransaction();
-        session.save(tracking);
-        session.getTransaction().commit();
-    }
-
-    @Override
-    public void update(TrackingEntity tracking) {
-        session.beginTransaction();
-        session.update(tracking);
+        session.saveOrUpdate(tracking);
         session.getTransaction().commit();
     }
 
     @Override
     public void delete(TrackingEntity tracking) {
         session.beginTransaction();
-        for (UserEntity user : tracking.getUsers()) {
-            tracking.removeUser(user);
-        }
+        tracking.removeAllUsers();
         session.delete(tracking);
         session.getTransaction().commit();
     }
 
     @Override
     public void deleteById(String number) {
-        session.beginTransaction();
         TrackingEntity tracking = session.find(TrackingEntity.class, number);
-        for (UserEntity user : tracking.getUsers()) {
-            tracking.removeUser(user);
+        if (tracking != null) {
+            session.beginTransaction();
+            tracking.removeAllUsers();
+            session.delete(tracking);
+            session.getTransaction().commit();
         }
-        session.delete(tracking);
-        session.getTransaction().commit();
     }
 
     @Override
-    public void merge(TrackingEntity tracking) {
+    public TrackingEntity merge(TrackingEntity tracking) {
         session.beginTransaction();
-        session.merge(tracking);
+        TrackingEntity trackingEntity = (TrackingEntity) session.merge(tracking);
         session.getTransaction().commit();
+        return trackingEntity;
     }
 }
