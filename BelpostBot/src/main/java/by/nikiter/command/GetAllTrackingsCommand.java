@@ -1,10 +1,11 @@
 package by.nikiter.command;
 
-import by.nikiter.model.parser.ParserHTML;
+import by.nikiter.model.db.entity.UserTrackingEntity;
+import by.nikiter.model.db.service.ServiceManager;
+import by.nikiter.model.ParserHTML;
 import by.nikiter.model.PropManager;
-import by.nikiter.model.tracker.PostTracker;
+import by.nikiter.model.TrackingUpdater;
 import by.nikiter.model.UserState;
-import by.nikiter.model.UsersRep;
 import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Chat;
@@ -17,7 +18,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
  *
  * @author NikiTer
  * @see ParserHTML#getTrackingMessage(String)
- * @see PostTracker#startUpdating(String) 
+ * @see TrackingUpdater#startUpdating(String)
  */
 public class GetAllTrackingsCommand extends BotCommand {
 
@@ -30,29 +31,36 @@ public class GetAllTrackingsCommand extends BotCommand {
 
     @Override
     public void execute(AbsSender absSender, User user, Chat chat, String[] strings) {
+        ServiceManager manager = new ServiceManager();
+        manager.openSession();
 
-        UsersRep.getInstance().setUserState(user, UserState.USING_BOT);
+        manager.getUserService().changeUserState(user.getUserName(),UserState.USING_BOT);
 
         try {
-
-            if (!PostTracker.getInstance().hasTrackings(user)) {
+            if (!manager.getUserService().hasTrackings(user.getUserName())) {
                 absSender.execute(new SendMessage(chat.getId(),
                         PropManager.getMessage("no_trackings")));
             } else {
-                for (String trackingNum : PostTracker.getInstance().getAllTrackings(user)) {
-                    String info = ParserHTML.getTrackingMessage(trackingNum);
-                    if (info == null) {
+                for (UserTrackingEntity ute : manager.getUserService().getAllTrackings(user.getUserName())) {
+                    String[] info = ParserHTML.getTrackingMessage(ute.getTracking().getNumber());
+                    if (info[0] == null) {
                         absSender.execute(new SendMessage(
-                                chat.getId(),PropManager.getMessage("no_response")
+                                chat.getId(),PropManager.getMessage("error.no_response")
                         ).enableHtml(true));
                         break;
                     }
                     StringBuilder sb = new StringBuilder();
-                    sb.append(PropManager.getMessage("tracking_message.tracking_number"))
-                            .append(trackingNum).append("\n")
+                    sb.append((PropManager.getMessage("tracking_message.tracking_name"))).append("\n")
+                            .append(ute.getTrackingName()).append("\n")
+                            .append(PropManager.getMessage("tracking_message.tracking_number"))
+                            .append(ute.getTracking().getNumber()).append("\n")
                             .append(PropManager.getMessage("tracking_message.tracking_info")).append("\n\n")
-                            .append(info);
-                    //PostTracker.getInstance().startUpdating(trackingNum);
+                            .append(info[0]);
+                    if (info[1] != null) {
+                        manager.getTrackingService()
+                                .updateTrackingInfo(ute.getTracking(),info[1],user.getUserName());
+                        TrackingUpdater.getInstance().startOrRestartUpdate(ute.getTracking().getNumber());
+                    }
                     absSender.execute(new SendMessage(chat.getId(),sb.toString()).enableHtml(true));
                 }
             }
@@ -60,5 +68,7 @@ public class GetAllTrackingsCommand extends BotCommand {
         } catch (TelegramApiException e) {
             e.printStackTrace();
         }
+
+        manager.closeSession();
     }
 }
