@@ -57,6 +57,44 @@ public class UserService {
         return user.getTrackings();
     }
 
+    public boolean hasTracking(String username, String trackingNumber) {
+        UserEntity user = userDao.findById(username);
+        if (user == null) {
+            return false;
+        }
+
+        for (UserTrackingEntity ute : user.getTrackings()) {
+            if (ute.getTracking().getNumber().equals(trackingNumber)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean hasTrackings(String username) {
+        UserEntity user = userDao.findById(username);
+        if (user == null) {
+            return false;
+        }
+
+        return user.getTrackings().size() > 0;
+    }
+
+    public String getTrackingName(String username, String trackingNumber) {
+        UserEntity user = userDao.findById(username);
+        if (user == null) {
+            return null;
+        }
+
+        for (UserTrackingEntity ute : user.getTrackings()) {
+            if (ute.getTracking().getNumber().equals(trackingNumber)) {
+                return ute.getTrackingName();
+            }
+        }
+
+        return null;
+    }
+
     public StateEntity getUserState(String username) {
         UserEntity user = userDao.findById(username);
         return user == null ? null : user.getState();
@@ -70,8 +108,11 @@ public class UserService {
         }
     }
 
-    public void addTracking(String username, String number, String name) {
+    public boolean addTracking(String username, String number, String name) {
         UserEntity user = userDao.findById(username);
+        if (user == null) {
+            return false;
+        }
         TrackingEntity tracking = trackingDao.findById(number);
         if (tracking == null) {
             tracking = new TrackingEntity();
@@ -79,12 +120,13 @@ public class UserService {
         }
         user.addTracking(tracking, name);
         trackingDao.merge(tracking);
+        return true;
     }
 
-    public void removeTracking(String username, String number) {
+    public boolean removeTracking(String username, String number) {
         UserEntity user = userDao.findById(username);
         if (user == null) {
-            return;
+            return false;
         }
 
         TrackingEntity tracking = null;
@@ -98,6 +140,8 @@ public class UserService {
         if (tracking != null) {
             user.removeTracking(tracking);
             updateUser(user);
+            return true;
         }
+        return false;
     }
 }

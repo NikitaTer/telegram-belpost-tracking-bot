@@ -1,11 +1,17 @@
 package by.nikiter.model.db.service;
 
+import by.nikiter.TgBot;
+import by.nikiter.model.PropManager;
 import by.nikiter.model.db.dao.TrackingDao;
 import by.nikiter.model.db.entity.TrackingEntity;
 import by.nikiter.model.db.entity.UserTrackingEntity;
 import org.hibernate.Session;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.sql.Timestamp;
 import java.util.List;
+import java.util.Objects;
 
 public class TrackingService {
 
@@ -20,7 +26,7 @@ public class TrackingService {
         return dao.findById(number);
     }
 
-    public List<TrackingEntity> findAllTrackings() {
+    public List<TrackingEntity> getAllTrackings() {
         return dao.findAll();
     }
 
@@ -36,16 +42,49 @@ public class TrackingService {
         dao.delete(tracking);
     }
 
-    public void tryToDeleteTracking(String number) {
-        TrackingEntity tracking = dao.findById(number);
-        if (tracking.getUsers().size() == 0) {
-            deleteTracking(tracking);
+    public void updateTrackingInfo(TrackingEntity tracking, String lastEvent, String username) {
+        if (tracking == null) {
+            return;
         }
+
+        tracking.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
+        if (!Objects.equals(tracking.getLastEvent(), lastEvent)) {
+            tracking.setLastEvent(lastEvent);
+            dao.merge(tracking);
+            String updateMessage = PropManager.getMessage("info_update");
+            for (UserTrackingEntity ute : tracking.getUsers()) {
+                if (!ute.getUser().getUsername().equals(username)) {
+                    StringBuilder sb = new StringBuilder();
+                    sb.append(updateMessage.replaceAll("%name%", ute.getTrackingName())).append("\n");
+                    sb.append(lastEvent);
+                    try {
+                        TgBot.getInstance().execute(new SendMessage(ute.getUser().getChatId(),sb.toString()));
+                    } catch (TelegramApiException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        } else {
+            dao.merge(tracking);
+        }
+    }
+
+    public void updateTrackingInfo(String trackingNumber, String lastEvent) {
+        updateTrackingInfo(dao.findById(trackingNumber), lastEvent, null);
+    }
+
+    public boolean tryToDeleteTracking(String number) {
+        TrackingEntity tracking = dao.findById(number);
+        if (tracking != null && tracking.getUsers().size() == 0) {
+            deleteTracking(tracking);
+            return true;
+        }
+        return false;
     }
 
     public void tryToDeleteTrackings(List<String> numbers) {
         for (String number : numbers) {
-            TrackingEntity tracking = findByNumber(number);
+            TrackingEntity tracking = dao.findById(number);
             if (tracking.getUsers().size() == 0) {
                 deleteTracking(tracking);
             }
