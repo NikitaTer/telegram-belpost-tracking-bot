@@ -1,7 +1,0 @@
----
-applications:
- - name: telegram-belpost-tracking-bot
-   random-route: true
-   path: BelpostBot/out/artifacts/BelpostBot_jar/BelpostBot.jar
-   memory: 256M
-   instances: 1

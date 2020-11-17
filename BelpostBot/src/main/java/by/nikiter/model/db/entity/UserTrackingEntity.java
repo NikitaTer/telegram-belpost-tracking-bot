@@ -3,7 +3,7 @@ package by.nikiter.model.db.entity;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "user_tracking", schema = "telegram_belpost_bot")
+@Table(name = "user_tracking", schema = "heroku_84355ad0b5614c2")
 public class UserTrackingEntity {
 
     @EmbeddedId

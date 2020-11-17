@@ -56,15 +56,13 @@ CREATE TABLE `user` (
 DROP TABLE IF EXISTS `user_tracking`;
 
 CREATE TABLE `user_tracking` (
-  `username` varchar(255) NOT NULL,
-  `tracking` varchar(13) NOT NULL,
+  `user_username` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  `tracking_number` varchar(13) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   `tracking_name` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT 'nameless',
-  `tracking_number` varchar(255) NOT NULL,
-  `user_username` varchar(255) NOT NULL,
-  PRIMARY KEY (`username`,`tracking`),
-  KEY `tracking` (`tracking`),
-  CONSTRAINT `user_tracking_ibfk_1` FOREIGN KEY (`username`) REFERENCES `user` (`username`),
-  CONSTRAINT `user_tracking_ibfk_2` FOREIGN KEY (`tracking`) REFERENCES `tracking` (`number`)
+  PRIMARY KEY (`user_username`,`tracking_number`),
+  KEY `tracking` (`tracking_number`),
+  CONSTRAINT `user_tracking_ibfk_1` FOREIGN KEY (`user_username`) REFERENCES `user` (`username`),
+  CONSTRAINT `user_tracking_ibfk_2` FOREIGN KEY (`tracking_number`) REFERENCES `tracking` (`number`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;

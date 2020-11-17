@@ -5,17 +5,14 @@ import by.nikiter.model.PropManager;
 import by.nikiter.model.db.service.ServiceManager;
 import by.nikiter.model.TrackingUpdater;
 import by.nikiter.model.UserState;
-import org.telegram.telegrambots.ApiContextInitializer;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.extensions.bots.commandbot.TelegramLongPollingCommandBot;
 import org.telegram.telegrambots.meta.ApiContext;
-import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 
 import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
@@ -39,22 +36,6 @@ public class TgBot extends TelegramLongPollingCommandBot {
                 instance = new TgBot(ApiContext.getInstance(DefaultBotOptions.class));
             }
             return instance;
-        }
-    }
-
-    /**
-     * Creating and registering bot with default bot options
-     * @see DefaultBotOptions
-     */
-    public static void main(String[] args) {
-        ApiContextInitializer.init();
-
-        TelegramBotsApi api = new TelegramBotsApi();
-
-        try {
-            api.registerBot(TgBot.getInstance());
-        } catch (TelegramApiRequestException e) {
-            e.printStackTrace();
         }
     }
 
@@ -88,7 +69,7 @@ public class TgBot extends TelegramLongPollingCommandBot {
             helpCommand.execute(absSender, message.getFrom(), message.getChat(), new String[]{});
         });
 
-        TrackingUpdater.getInstance().init();
+        //TrackingUpdater.getInstance().init();
     }
 
     /**
@@ -141,7 +122,7 @@ public class TgBot extends TelegramLongPollingCommandBot {
                                     .replaceAll("%name%",name)
                     ));
                     if (manager.getTrackingService().tryToDeleteTracking(query.getData())) {
-                        TrackingUpdater.getInstance().stopUpdate(query.getData());
+                        //TrackingUpdater.getInstance().stopUpdate(query.getData());
                     }
                 } else {
                     execute(new SendMessage(
@@ -180,7 +161,8 @@ public class TgBot extends TelegramLongPollingCommandBot {
 
             case ENTERING_TRACKING_NUMBER:
 
-                Matcher matcher = Pattern.compile("[A-Z]{2}[0-9]{9}[A-Z]{2} [^\\n%]{1,255}$").matcher(message.getText());
+                Matcher matcher = Pattern.compile("[A-Z]{2}[0-9]{9}[A-Z]{2} [^\n%]{1,255}\n")
+                        .matcher(message.getText() + "\n");
                 StringBuilder sb = new StringBuilder();
                 if (matcher.find()) {
                     do {

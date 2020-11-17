@@ -73,6 +73,10 @@ public class TrackingService {
         updateTrackingInfo(dao.findById(trackingNumber), lastEvent, null);
     }
 
+    public void updateTrackingInfo(TrackingEntity tracking, String lastEvent) {
+        updateTrackingInfo(tracking, lastEvent, null);
+    }
+
     public boolean tryToDeleteTracking(String number) {
         TrackingEntity tracking = dao.findById(number);
         if (tracking != null && tracking.getUsers().size() == 0) {

@@ -5,7 +5,7 @@ import java.sql.Timestamp;
 import java.util.*;
 
 @Entity
-@Table(name = "tracking", schema = "telegram_belpost_bot")
+@Table(name = "tracking", schema = "heroku_84355ad0b5614c2")
 public class TrackingEntity {
 
     @Id

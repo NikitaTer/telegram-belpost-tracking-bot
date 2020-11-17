@@ -3,6 +3,7 @@ package by.nikiter.model;
 import by.nikiter.model.db.entity.TrackingEntity;
 import by.nikiter.model.db.service.ServiceManager;
 
+import java.sql.Timestamp;
 import java.util.*;
 
 /**
@@ -13,7 +14,7 @@ import java.util.*;
 public class TrackingUpdater {
 
     private final Map<String, Timer> trackingTimerMap;
-    private final static long UPDATE_DELAY = 3_600_000;
+    private final static long UPDATE_DELAY = 1_200_000;
 
     private static volatile TrackingUpdater instance = null;
 
@@ -38,6 +39,12 @@ public class TrackingUpdater {
         ServiceManager manager = new ServiceManager();
         manager.openSession();
         for (TrackingEntity tracking : manager.getTrackingService().getAllTrackings()) {
+            if (tracking.getUpdatedAt().before(new Timestamp(System.currentTimeMillis() - UPDATE_DELAY))) {
+                String lastEvent = ParserHTML.getLastEvent(tracking.getNumber());
+                if (lastEvent != null) {
+                    manager.getTrackingService().updateTrackingInfo(tracking, lastEvent);
+                }
+            }
             startOrRestartUpdate(tracking.getNumber());
         }
         manager.closeSession();

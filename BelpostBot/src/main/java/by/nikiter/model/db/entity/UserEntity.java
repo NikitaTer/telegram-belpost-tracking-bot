@@ -4,7 +4,7 @@ import javax.persistence.*;
 import java.util.*;
 
 @Entity
-@Table(name = "user", schema = "telegram_belpost_bot")
+@Table(name = "user", schema = "heroku_84355ad0b5614c2")
 public class UserEntity {
 
     @Id

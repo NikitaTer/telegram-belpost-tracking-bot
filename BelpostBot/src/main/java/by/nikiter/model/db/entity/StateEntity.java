@@ -4,10 +4,9 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import java.util.Objects;
 
 @Entity
-@Table(name = "state", schema = "telegram_belpost_bot")
+@Table(name = "state", schema = "heroku_84355ad0b5614c2")
 public class StateEntity {
 
     @Id

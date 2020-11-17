@@ -33,7 +33,7 @@ public class HelpCommand extends BotCommand {
 
         ServiceManager manager = new ServiceManager();
         manager.openSession();
-        manager.getUserService().changeUserState(user.getUserName(), UserState.ENTERING_TRACKING_NUMBER);
+        manager.getUserService().changeUserState(user.getUserName(), UserState.USING_BOT);
         manager.closeSession();
 
         StringBuilder sb = new StringBuilder();
