@@ -1,7 +1,7 @@
-package by.nikiter.model.parser;
+package by.nikiter.model;
 
 import by.nikiter.model.PropManager;
-import by.nikiter.model.tracker.PostTracker;
+import by.nikiter.model.db.service.ServiceManager;
 import com.vdurmont.emoji.EmojiParser;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -27,9 +27,10 @@ public class ParserHTML {
      * @param trackingNum tracking number
      * @return tracking info
      */
-    public static synchronized String getTrackingMessage(String trackingNum) {
-        StringBuilder sb = new StringBuilder();
-        StringBuilder temp;
+    public static String[] getTrackingMessage(String trackingNum) {
+        String[] result = new String[2];
+        result[0] = null;
+        result[1] = null;
 
         try {
             Document doc = Jsoup.connect(URL + trackingNum)
@@ -37,9 +38,12 @@ public class ParserHTML {
             Elements tables = doc.select("table");
 
             if (tables.size() < 3) {
-                return PropManager.getMessage("tracking_message.html.no_info");
+                result[0] = PropManager.getMessage("tracking_message.html.no_info");
+                return result;
             }
 
+            StringBuilder sb;
+            StringBuilder temp;
             sb = new StringBuilder();
             String arrowDown = EmojiParser.parseToUnicode("         :arrow_down:\n");
 
@@ -49,15 +53,7 @@ public class ParserHTML {
                     isFirst = false;
                     continue;
                 }
-                temp = new StringBuilder();
-                temp.append("=======================").append("\n")
-                        .append(PropManager.getMessage("tracking_message.html.date"))
-                        .append(row.children().get(0).text()).append("\n")
-                        .append(PropManager.getMessage("tracking_message.html.status"))
-                        .append(row.children().get(1).text()).append("\n")
-                        .append(PropManager.getMessage("tracking_message.html.office"))
-                        .append(row.children().get(2).text()).append("\n")
-                        .append("=======================").append("\n");
+                temp = getBlock(row);
                 sb.append(temp);
                 if (
                         !row.equals(
@@ -66,18 +62,20 @@ public class ParserHTML {
                 ) {
                     sb.append(arrowDown).append(arrowDown).append(arrowDown).append(arrowDown);
                 } else {
-                    PostTracker.getInstance().updateTrackingInfo(trackingNum,temp.toString(),false);
+                    result[1] = temp.toString();
                 }
             }
+            result[0] = sb.toString();
+
 
         } catch (IOException e) {
             e.printStackTrace();
             if (e instanceof SocketTimeoutException) {
-                return null;
+                return result;
             }
         }
 
-        return sb.toString();
+        return result;
     }
 
     /**
@@ -86,35 +84,39 @@ public class ParserHTML {
      * @param trackingNum tracking number
      * @return last event from tracking info
      */
-    public static synchronized  String getLastEvent(String trackingNum) {
-        StringBuilder sb = new StringBuilder();
+    public static String getLastEvent(String trackingNum) {
         try {
             Document doc = Jsoup.connect(URL + trackingNum)
                     .userAgent("Mozilla").timeout(TIMEOUT).get();
             Elements tables = doc.select("table");
 
-
             if (tables.size() < 3) {
-                return PropManager.getMessage("tracking_message.html.no_info");
+                return null;
             }
 
             Element lastRow = tables.get(0).select("tr").get(tables.get(0).select("tr").size() - 1);
-            sb = new StringBuilder();
 
-            sb.append("=======================").append("\n")
-                    .append(PropManager.getMessage("tracking_message.html.date"))
-                    .append(lastRow.children().get(0).text()).append("\n")
-                    .append(PropManager.getMessage("tracking_message.html.status"))
-                    .append(lastRow.children().get(1).text()).append("\n")
-                    .append(PropManager.getMessage("tracking_message.html.office"))
-                    .append(lastRow.children().get(2).text()).append("\n")
-                    .append("=======================").append("\n");
+            return getBlock(lastRow).toString();
         } catch (IOException e) {
             e.printStackTrace();
             if (e instanceof SocketTimeoutException) {
                 return null;
             }
         }
-        return sb.toString();
+        return null;
+    }
+
+    private static StringBuilder getBlock(Element row) {
+        StringBuilder temp;
+        temp = new StringBuilder();
+        temp.append("=======================").append("\n")
+                .append(PropManager.getMessage("tracking_message.html.date"))
+                .append(row.children().get(0).text()).append("\n")
+                .append(PropManager.getMessage("tracking_message.html.status"))
+                .append(row.children().get(1).text()).append("\n")
+                .append(PropManager.getMessage("tracking_message.html.office"))
+                .append(row.children().get(2).text()).append("\n")
+                .append("=======================").append("\n");
+        return temp;
     }
 }

@@ -1,3 +1,3 @@
 Manifest-Version: 1.0
-Main-Class: by.nikiter.TgBot
+Main-Class: by.nikiter.App
 
