@@ -58,7 +58,9 @@ public class TrackingService {
                     sb.append(updateMessage.replaceAll("%name%", ute.getTrackingName())).append("\n");
                     sb.append(lastEvent);
                     try {
-                        TgBot.getInstance().execute(new SendMessage(ute.getUser().getChatId(),sb.toString()));
+                        TgBot.getInstance().execute(
+                                new SendMessage(ute.getUser().getChatId(),sb.toString()).enableHtml(true)
+                        );
                     } catch (TelegramApiException e) {
                         e.printStackTrace();
                     }
@@ -67,6 +69,10 @@ public class TrackingService {
         } else {
             dao.merge(tracking);
         }
+    }
+
+    public void updateTrackingInfo(String trackingNumber, String lastEvent, String username) {
+        updateTrackingInfo(dao.findById(trackingNumber), lastEvent, username);
     }
 
     public void updateTrackingInfo(String trackingNumber, String lastEvent) {

@@ -3,6 +3,10 @@ package by.nikiter.model;
 import by.nikiter.model.db.entity.TrackingEntity;
 import by.nikiter.model.db.service.ServiceManager;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.sql.Timestamp;
 import java.util.*;
 
@@ -14,7 +18,9 @@ import java.util.*;
 public class TrackingUpdater {
 
     private final Map<String, Timer> trackingTimerMap;
+    private Timer pingTimer = null;
     private final static long UPDATE_DELAY = 1_200_000;
+    private final static long PING_DELAY = 1_200_000;
 
     private static volatile TrackingUpdater instance = null;
 
@@ -48,6 +54,35 @@ public class TrackingUpdater {
             startOrRestartUpdate(tracking.getNumber());
         }
         manager.closeSession();
+    }
+
+    public void startPinging() {
+        if (pingTimer == null) {
+            pingTimer = new Timer("Ping Timer");
+            pingTimer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    try {
+                        URL url = new URL("https://www.google.com");
+                        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                        connection.connect();
+                        String host = url.getHost();
+                        int responseCode = connection.getResponseCode();
+                        connection.disconnect();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }, PING_DELAY, PING_DELAY);
+        }
+    }
+
+    public void stopPinging() {
+        if (pingTimer != null) {
+            pingTimer.cancel();
+            pingTimer.purge();
+            pingTimer = null;
+        }
     }
 
     public synchronized void startOrRestartUpdate(String trackingNumber) {

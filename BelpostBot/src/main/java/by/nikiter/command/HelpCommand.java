@@ -18,7 +18,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
  */
 public class HelpCommand extends BotCommand {
 
-    private static final String IDENTIFIER = "command.help";
+    private static final String IDENTIFIER = "help";
     private static final String DESC = "Возвращает список всех команд";
 
     private final ICommandRegistry commandRegistry;

@@ -18,7 +18,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
  */
 public class StartCommand extends BotCommand {
 
-    private static final String IDENTIFIER = "command.start";
+    private static final String IDENTIFIER = "start";
     private static final String DESC = "Начать использовать бот";
 
     public StartCommand() {

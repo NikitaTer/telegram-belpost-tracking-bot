@@ -22,7 +22,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
  */
 public class GetAllTrackingsCommand extends BotCommand {
 
-    private static final String IDENTIFIER = "command.get_all_trackings";
+    private static final String IDENTIFIER = "get_all_trackings";
     private static final String DESC = "Выводит информацию о всех почтовых отправлениях";
 
     public GetAllTrackingsCommand() {
