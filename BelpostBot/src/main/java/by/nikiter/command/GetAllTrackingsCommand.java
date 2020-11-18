@@ -22,8 +22,8 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
  */
 public class GetAllTrackingsCommand extends BotCommand {
 
-    private static final String IDENTIFIER = "get_all_trackings";
-    private static final String DESC = "Выводит инофрмацию о всех почтовых отправлениях";
+    private static final String IDENTIFIER = "command.get_all_trackings";
+    private static final String DESC = "Выводит информацию о всех почтовых отправлениях";
 
     public GetAllTrackingsCommand() {
         super(IDENTIFIER, DESC);
@@ -39,7 +39,7 @@ public class GetAllTrackingsCommand extends BotCommand {
         try {
             if (!manager.getUserService().hasTrackings(user.getUserName())) {
                 absSender.execute(new SendMessage(chat.getId(),
-                        PropManager.getMessage("no_trackings")));
+                        PropManager.getMessage("command.no_trackings")));
             } else {
                 for (UserTrackingEntity ute : manager.getUserService().getAllTrackings(user.getUserName())) {
                     String[] info = ParserHTML.getTrackingMessage(ute.getTracking().getNumber());

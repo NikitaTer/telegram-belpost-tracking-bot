@@ -7,8 +7,9 @@ package by.nikiter.model;
  */
 public enum UserState {
     USING_BOT(1,"USING_BOT", "User is using bot"),
-    DELETING_TRACKING(2,"DELETING_TRACKING", "User choosing tracking to delete"),
-    ENTERING_TRACKING_NUMBER(3,"ENTERING_TRACKING_NUMBER", "User is entering tracking number");
+    ENTERING_TRACKING(2,"ENTERING_TRACKING", "User is entering tracking"),
+    CHOOSING_TRACKING_TO_GET(3,"CHOOSING_TRACKING_TO_GET", "User is choosing tracking to get"),
+    CHOOSING_TRACKING_TO_DELETE(4,"CHOOSING_TRACKING_TO_DELETE", "User is choosing tracking to delete");
 
     private final int code;
     private final String name;

@@ -20,7 +20,7 @@ import java.util.List;
 
 /**
  * Command that start the two-step process of deleting user tracking.
- * First step is change user state to {@link UserState#DELETING_TRACKING} and send a message with inline keyboard
+ * First step is change user state to {@link UserState#CHOOSING_TRACKING_TO_DELETE} and send a message with inline keyboard
  * Second step is handles by {@link TgBot#processNonCommandUpdate(Update)}
  *
  * @author NikiTer
@@ -42,11 +42,11 @@ public class DeleteTrackingCommand extends BotCommand {
         try {
             SendMessage message;
             if (manager.getUserService().hasTrackings(user.getUserName())) {
-                message = new SendMessage(chat.getId(),PropManager.getMessage("delete_tracking.choose"))
+                message = new SendMessage(chat.getId(),PropManager.getMessage("command.delete_tracking.choose"))
                         .setReplyMarkup(getKeyboard(manager.getUserService().getAllTrackings(user.getUserName())));
-                manager.getUserService().changeUserState(user.getUserName(), UserState.DELETING_TRACKING);
+                manager.getUserService().changeUserState(user.getUserName(), UserState.CHOOSING_TRACKING_TO_DELETE);
             } else {
-                message = new SendMessage(chat.getId(),PropManager.getMessage("no_trackings"));
+                message = new SendMessage(chat.getId(),PropManager.getMessage("command.no_trackings"));
                 manager.getUserService().changeUserState(user.getUserName(), UserState.USING_BOT);
             }
             absSender.execute(message);

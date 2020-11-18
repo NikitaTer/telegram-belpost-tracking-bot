@@ -1,9 +1,9 @@
 package by.nikiter;
 
 import by.nikiter.command.*;
+import by.nikiter.model.ParserHTML;
 import by.nikiter.model.PropManager;
 import by.nikiter.model.db.service.ServiceManager;
-import by.nikiter.model.TrackingUpdater;
 import by.nikiter.model.UserState;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.extensions.bots.commandbot.TelegramLongPollingCommandBot;
@@ -59,6 +59,7 @@ public class TgBot extends TelegramLongPollingCommandBot {
         register(new AddTrackingsCommand());
         register(new DeleteTrackingCommand());
         register(new GetAllTrackingsCommand());
+        register(new GetTrackingCommand());
 
         registerDefaultAction((absSender, message) -> {
             try {
@@ -113,13 +114,13 @@ public class TgBot extends TelegramLongPollingCommandBot {
         manager.openSession();
 
         switch (UserState.getEnum(manager.getUserService().getUserState(query.getFrom().getUserName()).getName())) {
-            case DELETING_TRACKING:
-                String name = manager.getUserService().getTrackingName(query.getFrom().getUserName(),query.getData());
-                if (manager.getUserService().removeTracking(query.getFrom().getUserName(),query.getData())) {
+            case CHOOSING_TRACKING_TO_DELETE: {
+                String name = manager.getUserService().getTrackingName(query.getFrom().getUserName(), query.getData());
+                if (manager.getUserService().removeTracking(query.getFrom().getUserName(), query.getData())) {
                     execute(new SendMessage(
                             query.getMessage().getChatId(),
-                            PropManager.getMessage("delete_tracking.done")
-                                    .replaceAll("%name%",name)
+                            PropManager.getMessage("command.delete_tracking.done")
+                                    .replaceAll("%name%", name)
                     ));
                     if (manager.getTrackingService().tryToDeleteTracking(query.getData())) {
                         //TrackingUpdater.getInstance().stopUpdate(query.getData());
@@ -127,13 +128,39 @@ public class TgBot extends TelegramLongPollingCommandBot {
                 } else {
                     execute(new SendMessage(
                             query.getMessage().getChatId(),
-                            PropManager.getMessage("delete_tracking.failed")
-                                    .replaceAll("%name%",name)
+                            PropManager.getMessage("command.delete_tracking.failed")
+                                    .replaceAll("%name%", name)
                                     .replaceAll("%num%", query.getData())
                     ));
                 }
                 manager.getUserService().changeUserState(query.getFrom().getUserName(), UserState.USING_BOT);
                 break;
+            }
+
+            case CHOOSING_TRACKING_TO_GET: {
+                String[] info = ParserHTML.getTrackingMessage(query.getData());
+                if (info[0] == null) {
+                    execute(new SendMessage(query.getMessage().getChatId(),
+                            PropManager.getMessage("error.no_response")
+                    ));
+                    break;
+                }
+                String name = manager.getUserService().getTrackingName(query.getFrom().getUserName(), query.getData());
+                StringBuilder sb = new StringBuilder();
+                sb.append((PropManager.getMessage("tracking_message.tracking_name"))).append("\n")
+                        .append(name).append("\n")
+                        .append(PropManager.getMessage("tracking_message.tracking_number"))
+                        .append(query.getData()).append("\n")
+                        .append(PropManager.getMessage("tracking_message.tracking_info")).append("\n\n")
+                        .append(info[0]);
+                if (info[1] != null) {
+                    manager.getTrackingService().updateTrackingInfo(query.getData(),info[1]);
+                    //TrackingUpdater.getInstance().startOrRestartUpdate(ute.getTracking().getNumber());
+                }
+                execute(new SendMessage(query.getMessage().getChatId(),sb.toString()).enableHtml(true));
+                manager.getUserService().changeUserState(query.getFrom().getUserName(), UserState.USING_BOT);
+                break;
+            }
 
             default:
                 break;
@@ -159,8 +186,7 @@ public class TgBot extends TelegramLongPollingCommandBot {
                 execute(new SendMessage(message.getChatId(), PropManager.getMessage("non_command")));
                 break;
 
-            case ENTERING_TRACKING_NUMBER:
-
+            case ENTERING_TRACKING: {
                 Matcher matcher = Pattern.compile("[A-Z]{2}[0-9]{9}[A-Z]{2} [^\n%]{1,255}\n")
                         .matcher(message.getText() + "\n");
                 StringBuilder sb = new StringBuilder();
@@ -172,8 +198,8 @@ public class TgBot extends TelegramLongPollingCommandBot {
 
                         if (manager.getUserService().hasTracking(message.getFrom().getUserName(), trackingNumber)) {
                             sb.append(
-                                    PropManager.getMessage("add_trackings.already")
-                                            .replaceAll("%num%",trackingNumber)
+                                    PropManager.getMessage("command.add_trackings.already")
+                                            .replaceAll("%num%", trackingNumber)
                                             .replaceAll("%name%", manager.getUserService().getTrackingName(
                                                     message.getFrom().getUserName(), trackingNumber
                                                     )
@@ -181,21 +207,22 @@ public class TgBot extends TelegramLongPollingCommandBot {
                             ).append("\n");
                         } else {
                             manager.getUserService()
-                                    .addTracking(message.getFrom().getUserName(),trackingNumber,trackingName);
+                                    .addTracking(message.getFrom().getUserName(), trackingNumber, trackingName);
                             sb.append(
-                                    PropManager.getMessage("add_trackings.added")
-                                            .replaceAll("%num%",trackingNumber)
+                                    PropManager.getMessage("command.add_trackings.added")
+                                            .replaceAll("%num%", trackingNumber)
                                             .replaceAll("%name%", trackingName)
                             ).append("\n");
                         }
                     } while (matcher.find());
                 } else {
-                    sb.append(PropManager.getMessage("add_trackings.failed"));
+                    sb.append(PropManager.getMessage("command.add_trackings.failed"));
                 }
 
                 manager.getUserService().changeUserState(message.getFrom().getUserName(), UserState.USING_BOT);
-                execute(new SendMessage(message.getChatId(),sb.toString()));
+                execute(new SendMessage(message.getChatId(), sb.toString()));
                 break;
+            }
 
             default:
                 break;
