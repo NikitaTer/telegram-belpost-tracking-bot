@@ -5,7 +5,6 @@ import by.nikiter.model.db.service.ServiceManager;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.Timestamp;
 import java.util.*;
@@ -19,7 +18,8 @@ public class TrackingUpdater {
 
     private final Map<String, Timer> trackingTimerMap;
     private Timer pingTimer = null;
-    private final static long UPDATE_DELAY = 1_200_000;
+    private final static int UPDATES_PER_DAY = 3;
+    private final static long UPDATE_DELAY = 24/UPDATES_PER_DAY*60*60*1000;
     private final static long PING_DELAY = 1_200_000;
 
     private static volatile TrackingUpdater instance = null;

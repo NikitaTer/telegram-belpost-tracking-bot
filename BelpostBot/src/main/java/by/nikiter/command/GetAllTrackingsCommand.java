@@ -18,7 +18,6 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
  *
  * @author NikiTer
  * @see ParserHTML#getTrackingMessage(String)
- * @see TrackingUpdater#startUpdating(String)
  */
 public class GetAllTrackingsCommand extends BotCommand {
 
@@ -59,7 +58,7 @@ public class GetAllTrackingsCommand extends BotCommand {
                     if (info[1] != null) {
                         manager.getTrackingService()
                                 .updateTrackingInfo(ute.getTracking(),info[1],user.getUserName());
-                        //TrackingUpdater.getInstance().startOrRestartUpdate(ute.getTracking().getNumber());
+                        TrackingUpdater.getInstance().startOrRestartUpdate(ute.getTracking().getNumber());
                     }
                     absSender.execute(new SendMessage(chat.getId(),sb.toString()).enableHtml(true));
                 }

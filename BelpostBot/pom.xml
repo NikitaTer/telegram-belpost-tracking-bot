@@ -162,6 +162,8 @@
           <target>8</target>
         </configuration>
       </plugin>
+
+      <!-- Plugins for heroku deployment -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>appassembler-maven-plugin</artifactId>
@@ -171,64 +173,31 @@
           <programs>
             <program>
               <mainClass>by.nikiter.App</mainClass>
-              <name>worker</name>
+              <name>workerBot</name>
             </program>
           </programs>
         </configuration>
         <executions>
           <execution>
-            <phase>package</phase><goals><goal>assemble</goal></goals>
+            <phase>package</phase>
+            <goals>
+              <goal>assemble</goal>
+            </goals>
           </execution>
         </executions>
       </plugin>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>3.2.0</version>
-        <configuration>
-          <archive>
-            <manifest>
-              <addClasspath>true</addClasspath>
-              <classpathPrefix>lib/</classpathPrefix>
-              <mainClass>by.nikiter.App</mainClass>
-            </manifest>
-          </archive>
-        </configuration>
-      </plugin>
-      <plugin>
         <groupId>com.heroku.sdk</groupId>
         <artifactId>heroku-maven-plugin</artifactId>
-        <version>3.0.4</version>
+        <version>3.0.3</version>
         <configuration>
           <appName>telegram-belpost-tracking-bot</appName>
           <processTypes>
-            <web>java -jar target/*.jar</web>
-            <worker>java -jar target/*.jar</worker>
+            <worker>sh target/bin/workerBot</worker>
           </processTypes>
         </configuration>
       </plugin>
 
-      <plugin>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <!--<executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-          </execution>
-        </executions>-->
-        <configuration>
-          <archive>
-            <manifest>
-              <mainClass>by.nikiter.App</mainClass>
-            </manifest>
-          </archive>
-          <descriptorRefs>
-            <descriptorRef>jar-with-dependencies</descriptorRef>
-          </descriptorRefs>
-        </configuration>
-      </plugin>
     </plugins>
   </build>
 </project>

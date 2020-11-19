@@ -3,6 +3,7 @@ package by.nikiter;
 import by.nikiter.command.*;
 import by.nikiter.model.ParserHTML;
 import by.nikiter.model.PropManager;
+import by.nikiter.model.TrackingUpdater;
 import by.nikiter.model.db.service.ServiceManager;
 import by.nikiter.model.UserState;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
@@ -70,7 +71,8 @@ public class TgBot extends TelegramLongPollingCommandBot {
             helpCommand.execute(absSender, message.getFrom(), message.getChat(), new String[]{});
         });
 
-        //TrackingUpdater.getInstance().init();
+        TrackingUpdater.getInstance().init();
+        TrackingUpdater.getInstance().startPinging();
     }
 
     /**
@@ -123,7 +125,7 @@ public class TgBot extends TelegramLongPollingCommandBot {
                                     .replaceAll("%name%", name)
                     ));
                     if (manager.getTrackingService().tryToDeleteTracking(query.getData())) {
-                        //TrackingUpdater.getInstance().stopUpdate(query.getData());
+                        TrackingUpdater.getInstance().stopUpdate(query.getData());
                     }
                 } else {
                     execute(new SendMessage(
@@ -155,7 +157,7 @@ public class TgBot extends TelegramLongPollingCommandBot {
                         .append(info[0]);
                 if (info[1] != null) {
                     manager.getTrackingService().updateTrackingInfo(query.getData(),info[1]);
-                    //TrackingUpdater.getInstance().startOrRestartUpdate(ute.getTracking().getNumber());
+                    TrackingUpdater.getInstance().startOrRestartUpdate(query.getData());
                 }
                 execute(new SendMessage(query.getMessage().getChatId(),sb.toString()).enableHtml(true));
                 manager.getUserService().changeUserState(query.getFrom().getUserName(), UserState.USING_BOT);
