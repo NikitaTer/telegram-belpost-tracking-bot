@@ -47,7 +47,7 @@ public class TgBot extends TelegramLongPollingCommandBot {
      * @see HelpCommand
      * @see AddTrackingsCommand
      * @see DeleteTrackingCommand
-     * @see GetAllTrackingsCommand
+     * @see GetTrackingsInfoCommand
      * @see TelegramLongPollingCommandBot#registerDefaultAction(BiConsumer)
      */
     public TgBot(DefaultBotOptions options) {
@@ -59,8 +59,9 @@ public class TgBot extends TelegramLongPollingCommandBot {
         register(helpCommand);
         register(new AddTrackingsCommand());
         register(new DeleteTrackingCommand());
-        register(new GetAllTrackingsCommand());
-        register(new GetTrackingCommand());
+        register(new GetTrackingsListCommand());
+        register(new GetTrackingsInfoCommand());
+        register(new GetTrackingInfoCommand());
 
         registerDefaultAction((absSender, message) -> {
             try {
@@ -194,7 +195,8 @@ public class TgBot extends TelegramLongPollingCommandBot {
                 StringBuilder sb = new StringBuilder();
                 if (matcher.find()) {
                     do {
-                        String[] temp = matcher.group().replaceFirst(" ", "%").split("%");
+                        String[] temp = matcher.group().replaceFirst(" ", "%")
+                                .replaceAll("\n", "").split("%");
                         String trackingNumber = temp[0];
                         String trackingName = temp[1];
 

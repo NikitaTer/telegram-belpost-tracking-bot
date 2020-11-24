@@ -19,12 +19,12 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
  * @author NikiTer
  * @see ParserHTML#getTrackingMessage(String)
  */
-public class GetAllTrackingsCommand extends BotCommand {
+public class GetTrackingsInfoCommand extends BotCommand {
 
-    private static final String IDENTIFIER = "get_all_trackings";
+    private static final String IDENTIFIER = "get_trackings_info";
     private static final String DESC = "Выводит информацию о всех почтовых отправлениях";
 
-    public GetAllTrackingsCommand() {
+    public GetTrackingsInfoCommand() {
         super(IDENTIFIER, DESC);
     }
 
@@ -40,6 +40,7 @@ public class GetAllTrackingsCommand extends BotCommand {
                 absSender.execute(new SendMessage(chat.getId(),
                         PropManager.getMessage("command.no_trackings")));
             } else {
+                boolean isFirstLoop = true;
                 for (UserTrackingEntity ute : manager.getUserService().getAllTrackings(user.getUserName())) {
                     String[] info = ParserHTML.getTrackingMessage(ute.getTracking().getNumber());
                     if (info[0] == null) {
@@ -47,6 +48,12 @@ public class GetAllTrackingsCommand extends BotCommand {
                                 chat.getId(),PropManager.getMessage("error.no_response")
                         ).enableHtml(true));
                         break;
+                    }
+                    if (isFirstLoop) {
+                        isFirstLoop = false;
+                        absSender.execute(new SendMessage(
+                                chat.getId(),PropManager.getMessage("command.get_trackings_info")
+                        ).enableHtml(true));
                     }
                     StringBuilder sb = new StringBuilder();
                     sb.append((PropManager.getMessage("tracking_message.tracking_name"))).append("\n")

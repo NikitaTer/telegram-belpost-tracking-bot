@@ -16,12 +16,12 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GetTrackingCommand extends BotCommand {
+public class GetTrackingInfoCommand extends BotCommand {
 
-    private static final String IDENTIFIER = "get_tracking";
+    private static final String IDENTIFIER = "get_tracking_info";
     private static final String DESC = "Выводит информацию о выбранном почтовом отправлении";
 
-    public GetTrackingCommand() {
+    public GetTrackingInfoCommand() {
         super(IDENTIFIER, DESC);
     }
 
@@ -33,7 +33,7 @@ public class GetTrackingCommand extends BotCommand {
         try {
             SendMessage message;
             if (manager.getUserService().hasTrackings(user.getUserName())) {
-                message = new SendMessage(chat.getId(),PropManager.getMessage("command.get_tracking.choose"))
+                message = new SendMessage(chat.getId(),PropManager.getMessage("command.get_tracking_info.choose"))
                         .setReplyMarkup(getKeyboard(manager.getUserService().getAllTrackings(user.getUserName())));
                 manager.getUserService().changeUserState(user.getUserName(), UserState.CHOOSING_TRACKING_TO_GET);
             } else {
