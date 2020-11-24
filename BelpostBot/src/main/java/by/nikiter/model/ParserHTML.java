@@ -1,7 +1,5 @@
 package by.nikiter.model;
 
-import by.nikiter.model.PropManager;
-import by.nikiter.model.db.service.ServiceManager;
 import com.vdurmont.emoji.EmojiParser;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;

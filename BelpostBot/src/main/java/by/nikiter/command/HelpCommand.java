@@ -31,13 +31,8 @@ public class HelpCommand extends BotCommand {
     @Override
     public void execute(AbsSender absSender, User user, Chat chat, String[] strings) {
 
-        ServiceManager manager = new ServiceManager();
-        manager.openSession();
-        manager.getUserService().changeUserState(user.getUserName(), UserState.USING_BOT);
-        manager.closeSession();
-
         StringBuilder sb = new StringBuilder();
-        sb.append(PropManager.getMessage("help"));
+        sb.append(PropManager.getMessage("command.help"));
 
         commandRegistry.getRegisteredCommands().forEach(cmd -> sb
                 .append(cmd.toString()).append("\n\n"));
@@ -47,5 +42,10 @@ public class HelpCommand extends BotCommand {
         } catch (TelegramApiException e) {
             e.printStackTrace();
         }
+
+        ServiceManager manager = new ServiceManager();
+        manager.openSession();
+        manager.getUserService().changeUserState(user.getUserName(), UserState.USING_BOT);
+        manager.closeSession();
     }
 }

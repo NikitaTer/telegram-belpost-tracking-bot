@@ -18,14 +18,13 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
  *
  * @author NikiTer
  * @see ParserHTML#getTrackingMessage(String)
- * @see TrackingUpdater#startUpdating(String)
  */
-public class GetAllTrackingsCommand extends BotCommand {
+public class GetTrackingsInfoCommand extends BotCommand {
 
-    private static final String IDENTIFIER = "get_all_trackings";
-    private static final String DESC = "Выводит инофрмацию о всех почтовых отправлениях";
+    private static final String IDENTIFIER = "get_trackings_info";
+    private static final String DESC = "Выводит информацию о всех почтовых отправлениях";
 
-    public GetAllTrackingsCommand() {
+    public GetTrackingsInfoCommand() {
         super(IDENTIFIER, DESC);
     }
 
@@ -39,8 +38,9 @@ public class GetAllTrackingsCommand extends BotCommand {
         try {
             if (!manager.getUserService().hasTrackings(user.getUserName())) {
                 absSender.execute(new SendMessage(chat.getId(),
-                        PropManager.getMessage("no_trackings")));
+                        PropManager.getMessage("command.no_trackings")));
             } else {
+                boolean isFirstLoop = true;
                 for (UserTrackingEntity ute : manager.getUserService().getAllTrackings(user.getUserName())) {
                     String[] info = ParserHTML.getTrackingMessage(ute.getTracking().getNumber());
                     if (info[0] == null) {
@@ -48,6 +48,12 @@ public class GetAllTrackingsCommand extends BotCommand {
                                 chat.getId(),PropManager.getMessage("error.no_response")
                         ).enableHtml(true));
                         break;
+                    }
+                    if (isFirstLoop) {
+                        isFirstLoop = false;
+                        absSender.execute(new SendMessage(
+                                chat.getId(),PropManager.getMessage("command.get_trackings_info")
+                        ).enableHtml(true));
                     }
                     StringBuilder sb = new StringBuilder();
                     sb.append((PropManager.getMessage("tracking_message.tracking_name"))).append("\n")
@@ -59,7 +65,7 @@ public class GetAllTrackingsCommand extends BotCommand {
                     if (info[1] != null) {
                         manager.getTrackingService()
                                 .updateTrackingInfo(ute.getTracking(),info[1],user.getUserName());
-                        //TrackingUpdater.getInstance().startOrRestartUpdate(ute.getTracking().getNumber());
+                        TrackingUpdater.getInstance().startOrRestartUpdate(ute.getTracking().getNumber());
                     }
                     absSender.execute(new SendMessage(chat.getId(),sb.toString()).enableHtml(true));
                 }

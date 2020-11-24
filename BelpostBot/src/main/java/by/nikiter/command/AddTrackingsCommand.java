@@ -14,7 +14,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 /**
  * Command that start the two-step process of adding a new tracking to user.
- * First step is change user state to {@link UserState#ENTERING_TRACKING_NUMBER} and send a message
+ * First step is change user state to {@link UserState#ENTERING_TRACKING} and send a message
  * Second step is handles by {@link TgBot#processNonCommandUpdate(Update)}
  *
  * @author NikiTer
@@ -33,11 +33,11 @@ public class AddTrackingsCommand extends BotCommand {
 
         ServiceManager manager = new ServiceManager();
         manager.openSession();
-        manager.getUserService().changeUserState(user.getUserName(), UserState.ENTERING_TRACKING_NUMBER);
+        manager.getUserService().changeUserState(user.getUserName(), UserState.ENTERING_TRACKING);
         manager.closeSession();
 
         try {
-            absSender.execute(new SendMessage(chat.getId(), PropManager.getMessage("add_trackings.enter")));
+            absSender.execute(new SendMessage(chat.getId(), PropManager.getMessage("command.add_trackings.enter")));
         } catch (TelegramApiException e) {
             e.printStackTrace();
         }

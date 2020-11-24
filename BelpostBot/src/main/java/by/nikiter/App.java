@@ -5,9 +5,6 @@ import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 public class App {
 
     /**
