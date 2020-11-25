@@ -1,6 +1,7 @@
 package by.nikiter.command;
 
 import by.nikiter.model.PropManager;
+import by.nikiter.model.UserState;
 import by.nikiter.model.db.entity.UserTrackingEntity;
 import by.nikiter.model.db.service.ServiceManager;
 import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
@@ -23,6 +24,8 @@ public class GetTrackingsListCommand extends BotCommand {
     public void execute(AbsSender absSender, User user, Chat chat, String[] strings) {
         ServiceManager manager = new ServiceManager();
         manager.openSession();
+
+        manager.getUserService().changeUserState(user.getUserName(), UserState.USING_BOT);
 
         try {
 

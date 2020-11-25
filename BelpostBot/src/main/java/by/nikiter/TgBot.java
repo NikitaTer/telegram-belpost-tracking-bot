@@ -62,6 +62,7 @@ public class TgBot extends TelegramLongPollingCommandBot {
         register(new GetTrackingsListCommand());
         register(new GetTrackingsInfoCommand());
         register(new GetTrackingInfoCommand());
+        register(new CheckForUpdatesCommand());
 
         registerDefaultAction((absSender, message) -> {
             try {

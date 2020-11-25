@@ -42,9 +42,9 @@ public class TrackingService {
         dao.delete(tracking);
     }
 
-    public void updateTrackingInfo(TrackingEntity tracking, String lastEvent, String username) {
+    public boolean updateTrackingInfo(TrackingEntity tracking, String lastEvent, String username) {
         if (tracking == null) {
-            return;
+            return false;
         }
 
         tracking.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
@@ -66,21 +66,23 @@ public class TrackingService {
                     }
                 }
             }
+            return true;
         } else {
             dao.merge(tracking);
+            return false;
         }
     }
 
-    public void updateTrackingInfo(String trackingNumber, String lastEvent, String username) {
-        updateTrackingInfo(dao.findById(trackingNumber), lastEvent, username);
+    public boolean updateTrackingInfo(String trackingNumber, String lastEvent, String username) {
+        return updateTrackingInfo(dao.findById(trackingNumber), lastEvent, username);
     }
 
-    public void updateTrackingInfo(String trackingNumber, String lastEvent) {
-        updateTrackingInfo(dao.findById(trackingNumber), lastEvent, null);
+    public boolean updateTrackingInfo(String trackingNumber, String lastEvent) {
+        return updateTrackingInfo(dao.findById(trackingNumber), lastEvent, null);
     }
 
-    public void updateTrackingInfo(TrackingEntity tracking, String lastEvent) {
-        updateTrackingInfo(tracking, lastEvent, null);
+    public boolean updateTrackingInfo(TrackingEntity tracking, String lastEvent) {
+        return updateTrackingInfo(tracking, lastEvent, null);
     }
 
     public boolean tryToDeleteTracking(String number) {
