@@ -5,6 +5,13 @@ import org.hibernate.Session;
 
 import java.util.List;
 
+/**
+ * Class that provides dao methods that uses to interact with state table
+ *
+ * @see StateEntity
+ * @see BasicDao
+ * @author NikiTer
+ */
 public class StateDao implements BasicDao<StateEntity, Integer> {
 
     private Session session = null;

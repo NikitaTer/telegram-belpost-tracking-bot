@@ -2,6 +2,7 @@ package by.nikiter.model.db.service;
 
 import by.nikiter.TgBot;
 import by.nikiter.model.PropManager;
+import by.nikiter.model.db.dao.StateDao;
 import by.nikiter.model.db.dao.TrackingDao;
 import by.nikiter.model.db.entity.TrackingEntity;
 import by.nikiter.model.db.entity.UserTrackingEntity;
@@ -13,6 +14,12 @@ import java.sql.Timestamp;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Service that provides an interface for working with state tracking through {@link TrackingDao}
+ *
+ * @see TrackingDao
+ * @author NikiTer
+ */
 public class TrackingService {
 
     private final TrackingDao dao;

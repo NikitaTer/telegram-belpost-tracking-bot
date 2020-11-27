@@ -13,6 +13,14 @@ import org.hibernate.Session;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Service that provides an interface for working with user table through {@link UserDao}
+ *
+ * @see UserDao
+ * @see TrackingDao
+ * @see StateDao
+ * @author NikiTer
+ */
 public class UserService {
 
     private final UserDao userDao;

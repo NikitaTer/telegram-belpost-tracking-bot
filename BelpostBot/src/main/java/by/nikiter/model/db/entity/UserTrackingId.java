@@ -4,6 +4,12 @@ import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import java.io.Serializable;
 
+/**
+ * POJO entity class that represent id type of user_tracking table
+ *
+ * @see UserTrackingEntity
+ * @author NikiTer
+ */
 @Embeddable
 public class UserTrackingId implements Serializable {
 

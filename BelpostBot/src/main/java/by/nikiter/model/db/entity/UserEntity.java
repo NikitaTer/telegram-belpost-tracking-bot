@@ -1,8 +1,16 @@
 package by.nikiter.model.db.entity;
 
+import by.nikiter.model.db.dao.UserDao;
+
 import javax.persistence.*;
 import java.util.*;
 
+/**
+ * POJO entity class that represent user table
+ *
+ * @see UserDao
+ * @author NikiTer
+ */
 @Entity
 @Table(name = "user", schema = "heroku_84355ad0b5614c2")
 public class UserEntity {

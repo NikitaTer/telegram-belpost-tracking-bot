@@ -1,11 +1,19 @@
 package by.nikiter.model.db.dao;
 
 import by.nikiter.model.db.entity.TrackingEntity;
-import by.nikiter.model.db.entity.UserEntity;
+import by.nikiter.model.db.entity.UserTrackingEntity;
 import org.hibernate.Session;
 
 import java.util.List;
 
+/**
+ * Class that provides dao methods that uses to interact with tracking table
+ *
+ * @see TrackingEntity
+ * @see UserTrackingEntity
+ * @see BasicDao
+ * @author NikiTer
+ */
 public class TrackingDao implements BasicDao<TrackingEntity,String> {
 
     private Session session = null;

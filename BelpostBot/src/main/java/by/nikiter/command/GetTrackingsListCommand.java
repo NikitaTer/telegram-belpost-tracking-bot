@@ -1,5 +1,6 @@
 package by.nikiter.command;
 
+import by.nikiter.model.ParserHTML;
 import by.nikiter.model.PropManager;
 import by.nikiter.model.UserState;
 import by.nikiter.model.comparator.UserTrackingCreatedAtComparator;
@@ -15,6 +16,11 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.List;
 
+/**
+ * Command that sends to user list of his trackings
+ *
+ * @author NikiTer
+ */
 public class GetTrackingsListCommand extends BotCommand {
 
     private static final String IDENTIFIER = "get_trackings_list";

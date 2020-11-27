@@ -1,10 +1,18 @@
 package by.nikiter.model.db.entity;
 
+import by.nikiter.model.db.dao.StateDao;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+/**
+ * POJO entity class that represent state table
+ *
+ * @see StateDao
+ * @author NikiTer
+ */
 @Entity
 @Table(name = "state", schema = "heroku_84355ad0b5614c2")
 public class StateEntity {

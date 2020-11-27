@@ -4,6 +4,12 @@ import by.nikiter.model.db.entity.UserTrackingEntity;
 
 import java.util.Comparator;
 
+/**
+ * Comparator for {@link UserTrackingEntity} that compares by trackingName field
+ *
+ * @see UserTrackingEntity
+ * @author NikiTer
+ */
 public class UserTrackingNameComparator implements Comparator<UserTrackingEntity> {
 
     @Override

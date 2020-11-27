@@ -1,5 +1,6 @@
 package by.nikiter.command;
 
+import by.nikiter.TgBot;
 import by.nikiter.model.PropManager;
 import by.nikiter.model.UserState;
 import by.nikiter.model.comparator.UserTrackingCreatedAtComparator;
@@ -9,6 +10,7 @@ import by.nikiter.model.db.service.ServiceManager;
 import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Chat;
+import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -18,6 +20,13 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Command that start the two-step process of getting info about tracking.
+ * First step is change user state to {@link UserState#CHOOSING_TRACKING_TO_GET} and send a message with inline keyboard
+ * Second step is handles by {@link TgBot#processNonCommandUpdate(Update)}
+ *
+ * @author NikiTer
+ */
 public class GetTrackingInfoCommand extends BotCommand {
 
     private static final String IDENTIFIER = "get_tracking_info";

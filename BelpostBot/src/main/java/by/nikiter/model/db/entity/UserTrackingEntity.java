@@ -1,8 +1,15 @@
 package by.nikiter.model.db.entity;
 
+
 import javax.persistence.*;
 import java.sql.Timestamp;
 
+/**
+ * POJO entity class that represent user_tracking table
+ *
+ * @see UserTrackingId
+ * @author NikiTer
+ */
 @Entity
 @Table(name = "user_tracking", schema = "heroku_84355ad0b5614c2")
 public class UserTrackingEntity {

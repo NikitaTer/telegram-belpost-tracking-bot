@@ -25,6 +25,7 @@ import java.util.List;
  * First step is change user state to {@link UserState#CHOOSING_TRACKING_TO_DELETE} and send a message with inline keyboard
  * Second step is handles by {@link TgBot#processNonCommandUpdate(Update)}
  *
+ * @see by.nikiter.model.ParserHTML#getLastEvent(String)
  * @author NikiTer
  */
 public class DeleteTrackingCommand extends BotCommand {

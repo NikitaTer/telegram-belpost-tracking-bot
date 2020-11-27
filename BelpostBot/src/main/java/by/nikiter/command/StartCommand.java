@@ -12,7 +12,6 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 /**
  * Command that starts dialog between user and bot.
- * Also creates reply keyboard for user
  *
  * @author NikiTer
  */

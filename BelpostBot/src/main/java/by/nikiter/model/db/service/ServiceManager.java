@@ -2,6 +2,15 @@ package by.nikiter.model.db.service;
 
 import by.nikiter.model.db.SessionUtil;
 
+/**
+ * Class that manages all services and hibernate sessions
+ *
+ * @see UserService
+ * @see TrackingService
+ * @see StateService
+ * @see SessionUtil
+ * @author NikiTer
+ */
 public class ServiceManager {
 
     private UserService userService = null;

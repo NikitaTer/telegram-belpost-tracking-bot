@@ -1,9 +1,17 @@
 package by.nikiter.model.db.entity;
 
+import by.nikiter.model.db.dao.TrackingDao;
+
 import javax.persistence.*;
 import java.sql.Timestamp;
 import java.util.*;
 
+/**
+ * POJO entity class that represent tracking table
+ *
+ * @see TrackingDao
+ * @author NikiTer
+ */
 @Entity
 @Table(name = "tracking", schema = "heroku_84355ad0b5614c2")
 public class TrackingEntity {

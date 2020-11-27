@@ -10,7 +10,7 @@ import java.sql.Timestamp;
 import java.util.*;
 
 /**
- * Class that is used to work with trackings and store data about them
+ * Class that is used to work with trackings update
  *
  * @author NikiTer
  */

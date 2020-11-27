@@ -6,6 +6,12 @@ import org.hibernate.Session;
 
 import java.util.List;
 
+/**
+ * Service that provides an interface for working with state table through {@link StateDao}
+ *
+ * @see StateDao
+ * @author NikiTer
+ */
 public class StateService {
 
     private final StateDao dao;

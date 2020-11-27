@@ -17,6 +17,11 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.List;
 
+/**
+ * Command that checking for updates all users trackings.
+ *
+ * @author NikiTer
+ */
 public class CheckForUpdatesCommand extends BotCommand {
 
     private static final String IDENTIFIER = "check_for_updates";
