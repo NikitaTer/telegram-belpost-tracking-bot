@@ -1,5 +1,7 @@
 package by.nikiter.command;
 
+import by.nikiter.model.comparator.UserTrackingCreatedAtComparator;
+import by.nikiter.model.comparator.UserTrackingNameComparator;
 import by.nikiter.model.db.entity.UserTrackingEntity;
 import by.nikiter.model.db.service.ServiceManager;
 import by.nikiter.model.ParserHTML;
@@ -12,6 +14,8 @@ import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+
+import java.util.List;
 
 /**
  * Command that sends to user info about his trackings
@@ -41,7 +45,9 @@ public class GetTrackingsInfoCommand extends BotCommand {
                         PropManager.getMessage("command.no_trackings")));
             } else {
                 boolean isFirstLoop = true;
-                for (UserTrackingEntity ute : manager.getUserService().getAllTrackings(user.getUserName())) {
+                List<UserTrackingEntity> trackings = manager.getUserService().getAllTrackings(user.getUserName());
+                trackings.sort(new UserTrackingCreatedAtComparator().thenComparing(new UserTrackingNameComparator()));
+                for (UserTrackingEntity ute : trackings) {
                     String[] info = ParserHTML.getTrackingMessage(ute.getTracking().getNumber());
                     if (info[0] == null) {
                         absSender.execute(new SendMessage(

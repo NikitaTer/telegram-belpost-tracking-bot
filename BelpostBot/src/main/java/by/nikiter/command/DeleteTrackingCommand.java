@@ -2,6 +2,8 @@ package by.nikiter.command;
 
 import by.nikiter.TgBot;
 import by.nikiter.model.PropManager;
+import by.nikiter.model.comparator.UserTrackingCreatedAtComparator;
+import by.nikiter.model.comparator.UserTrackingNameComparator;
 import by.nikiter.model.db.entity.UserTrackingEntity;
 import by.nikiter.model.db.service.ServiceManager;
 import by.nikiter.model.UserState;
@@ -67,6 +69,7 @@ public class DeleteTrackingCommand extends BotCommand {
 
         int i=0;
         List<InlineKeyboardButton> row = new ArrayList<>();
+        trackings.sort(new UserTrackingCreatedAtComparator().thenComparing(new UserTrackingNameComparator()));
         for (UserTrackingEntity ute : trackings) {
             if (i==2) {
                 rows.add(row);

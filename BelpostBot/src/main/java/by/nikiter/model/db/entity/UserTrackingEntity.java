@@ -1,6 +1,7 @@
 package by.nikiter.model.db.entity;
 
 import javax.persistence.*;
+import java.sql.Timestamp;
 
 @Entity
 @Table(name = "user_tracking", schema = "heroku_84355ad0b5614c2")
@@ -19,6 +20,9 @@ public class UserTrackingEntity {
 
     @Column(name = "tracking_name")
     private String trackingName;
+
+    @Column(name = "created_at", insertable = false)
+    private Timestamp createdAt;
 
     public UserTrackingEntity() {
         trackingName = "nameless";
@@ -63,6 +67,14 @@ public class UserTrackingEntity {
         this.trackingName = trackingName;
     }
 
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -71,7 +83,8 @@ public class UserTrackingEntity {
         return id.equals(that.id) &&
                 user.equals(that.user) &&
                 tracking.equals(that.tracking) &&
-                trackingName.equals(that.trackingName);
+                trackingName.equals(that.trackingName) &&
+                createdAt.equals(that.createdAt);
     }
 
     @Override
@@ -81,6 +94,7 @@ public class UserTrackingEntity {
         hash = 31 * hash + (user == null ? 0 : user.hashCode());
         hash = 31 * hash + (tracking == null ? 0 : tracking.hashCode());
         hash = 31 * hash + (trackingName == null ? 0 : trackingName.hashCode());
+        hash = 31 * hash + (createdAt == null ? 0 : createdAt.hashCode());
         return hash;
     }
 
@@ -91,6 +105,7 @@ public class UserTrackingEntity {
                 ", user=" + user +
                 ", tracking=" + tracking +
                 ", trackingName='" + trackingName + '\'' +
+                ", createdAt=" + createdAt.toString() +
                 '}';
     }
 }
