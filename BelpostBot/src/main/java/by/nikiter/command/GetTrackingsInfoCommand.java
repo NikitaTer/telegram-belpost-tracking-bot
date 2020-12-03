@@ -45,10 +45,10 @@ public class GetTrackingsInfoCommand extends BotCommand {
                         PropManager.getMessage("command.no_trackings")));
             } else {
                 boolean isFirstLoop = true;
-                List<UserTrackingEntity> trackings = manager.getUserService().getAllTrackings(user.getUserName());
-                trackings.sort(new UserTrackingCreatedAtComparator().thenComparing(new UserTrackingNameComparator()));
-                for (UserTrackingEntity ute : trackings) {
-                    String[] info = ParserHTML.getTrackingMessage(ute.getTracking().getNumber());
+                List<String[]> pairs = manager.getUserService()
+                        .getAllTrackingsNumbersAndNames(user.getUserName());
+                for (String[] pair : pairs) {
+                    String[] info = ParserHTML.getTrackingMessage(pair[0]);
                     if (info[0] == null) {
                         absSender.execute(new SendMessage(
                                 chat.getId(),PropManager.getMessage("error.no_response")
@@ -63,15 +63,15 @@ public class GetTrackingsInfoCommand extends BotCommand {
                     }
                     StringBuilder sb = new StringBuilder();
                     sb.append((PropManager.getMessage("tracking_message.tracking_name"))).append("\n")
-                            .append(ute.getTrackingName()).append("\n")
+                            .append(pair[1]).append("\n")
                             .append(PropManager.getMessage("tracking_message.tracking_number"))
-                            .append(ute.getTracking().getNumber()).append("\n")
+                            .append(pair[0]).append("\n")
                             .append(PropManager.getMessage("tracking_message.tracking_info")).append("\n\n")
                             .append(info[0]);
                     if (info[1] != null) {
                         manager.getTrackingService()
-                                .updateTrackingInfo(ute.getTracking(),info[1],user.getUserName());
-                        TrackingUpdater.getInstance().startOrRestartUpdate(ute.getTracking().getNumber());
+                                .updateTrackingInfo(pair[0],info[1],user.getUserName());
+                        TrackingUpdater.getInstance().startOrRestartUpdate(pair[0]);
                     }
                     absSender.execute(new SendMessage(chat.getId(),sb.toString()).enableHtml(true));
                 }

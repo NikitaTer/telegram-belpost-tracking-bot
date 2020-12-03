@@ -39,17 +39,16 @@ public class CheckForUpdatesCommand extends BotCommand {
         manager.getUserService().changeUserState(user.getUserName(), UserState.USING_BOT);
 
         boolean isNoUpdates = true;
-        List<UserTrackingEntity> trackings = manager.getUserService().getAllTrackings(user.getUserName());
-        trackings.sort(new UserTrackingCreatedAtComparator().thenComparing(new UserTrackingNameComparator()));
-        for (UserTrackingEntity ute : trackings) {
-            String lastEvent = ParserHTML.getLastEvent(ute.getTracking().getNumber());
+        List<String> numbers = manager.getUserService().getAllTrackingsNumbers(user.getUserName());
+        for (String num : numbers) {
+            String lastEvent = ParserHTML.getLastEvent(num);
             if (lastEvent != null) {
-                if (    manager.getTrackingService().updateTrackingInfo(ute.getTracking().getNumber(), lastEvent)
+                if (    manager.getTrackingService().updateTrackingInfo(num, lastEvent)
                         && isNoUpdates
                 ) {
                     isNoUpdates = false;
                 }
-                TrackingUpdater.getInstance().startOrRestartUpdate(ute.getTracking().getNumber());
+                TrackingUpdater.getInstance().startOrRestartUpdate(num);
             }
         }
 

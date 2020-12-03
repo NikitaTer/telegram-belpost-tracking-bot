@@ -44,14 +44,16 @@ public class TrackingUpdater {
     public void init() {
         ServiceManager manager = new ServiceManager();
         manager.openSession();
-        for (TrackingEntity tracking : manager.getTrackingService().getAllTrackings()) {
-            if (tracking.getUpdatedAt().before(new Timestamp(System.currentTimeMillis() - UPDATE_DELAY))) {
-                String lastEvent = ParserHTML.getLastEvent(tracking.getNumber());
+        for (Map.Entry<String,Timestamp> entry
+                :
+                manager.getTrackingService().getAllTrackingsNumbersAndUpdatedAt().entrySet()) {
+            if (entry.getValue().before(new Timestamp(System.currentTimeMillis() - UPDATE_DELAY))) {
+                String lastEvent = ParserHTML.getLastEvent(entry.getKey());
                 if (lastEvent != null) {
-                    manager.getTrackingService().updateTrackingInfo(tracking, lastEvent);
+                    manager.getTrackingService().updateTrackingInfo(entry.getKey(), lastEvent);
                 }
             }
-            startOrRestartUpdate(tracking.getNumber());
+            startOrRestartUpdate(entry.getKey());
         }
         manager.closeSession();
     }

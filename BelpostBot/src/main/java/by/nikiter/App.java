@@ -1,5 +1,8 @@
 package by.nikiter;
 
+import by.nikiter.model.db.SessionManager;
+import by.nikiter.model.db.service.ServiceManager;
+import org.hibernate.Transaction;
 import org.telegram.telegrambots.ApiContextInitializer;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
@@ -12,7 +15,6 @@ public class App {
      * @see DefaultBotOptions
      */
     public static void main(String[] args) {
-
         ApiContextInitializer.init();
 
         TelegramBotsApi api = new TelegramBotsApi();

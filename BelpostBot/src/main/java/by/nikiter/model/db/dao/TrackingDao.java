@@ -16,17 +16,10 @@ import java.util.List;
  */
 public class TrackingDao implements BasicDao<TrackingEntity,String> {
 
-    private Session session = null;
+    private final Session session;
 
-    public TrackingDao() {
-    }
-
-    public void setSession(Session session) {
+    public TrackingDao(Session session) {
         this.session = session;
-    }
-
-    public Session getSession() {
-        return session;
     }
 
     @Override
@@ -41,35 +34,26 @@ public class TrackingDao implements BasicDao<TrackingEntity,String> {
 
     @Override
     public void saveOrUpdate(TrackingEntity tracking) {
-        session.beginTransaction();
         session.saveOrUpdate(tracking);
-        session.getTransaction().commit();
     }
 
     @Override
     public void delete(TrackingEntity tracking) {
-        session.beginTransaction();
         tracking.removeAllUsers();
         session.delete(tracking);
-        session.getTransaction().commit();
     }
 
     @Override
     public void deleteById(String number) {
         TrackingEntity tracking = session.find(TrackingEntity.class, number);
         if (tracking != null) {
-            session.beginTransaction();
             tracking.removeAllUsers();
             session.delete(tracking);
-            session.getTransaction().commit();
         }
     }
 
     @Override
     public TrackingEntity merge(TrackingEntity tracking) {
-        session.beginTransaction();
-        TrackingEntity trackingEntity = (TrackingEntity) session.merge(tracking);
-        session.getTransaction().commit();
-        return trackingEntity;
+        return (TrackingEntity) session.merge(tracking);
     }
 }

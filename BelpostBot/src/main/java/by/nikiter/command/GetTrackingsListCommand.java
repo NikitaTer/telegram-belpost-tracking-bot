@@ -45,10 +45,10 @@ public class GetTrackingsListCommand extends BotCommand {
             } else {
                 StringBuilder sb = new StringBuilder();
                 sb.append(PropManager.getMessage("command.get_trackings_list")).append("\n");
-                List<UserTrackingEntity> trackings = manager.getUserService().getAllTrackings(user.getUserName());
-                trackings.sort(new UserTrackingCreatedAtComparator().thenComparing(new UserTrackingNameComparator()));
-                for (UserTrackingEntity ute : trackings) {
-                    sb.append(ute.getTracking().getNumber()).append(" - ").append(ute.getTrackingName()).append("\n");
+                List<String[]> pairs = manager.getUserService()
+                        .getAllTrackingsNumbersAndNames(user.getUserName());
+                for (String[] pair : pairs) {
+                    sb.append(pair[0]).append(" - ").append(pair[1]).append("\n");
                 }
                 absSender.execute(new SendMessage(chat.getId(),sb.toString()).enableHtml(true));
             }

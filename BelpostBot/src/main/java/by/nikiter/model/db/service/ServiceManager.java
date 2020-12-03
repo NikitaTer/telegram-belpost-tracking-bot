@@ -1,6 +1,6 @@
 package by.nikiter.model.db.service;
 
-import by.nikiter.model.db.SessionUtil;
+import by.nikiter.model.db.SessionManager;
 
 /**
  * Class that manages all services and hibernate sessions
@@ -8,7 +8,7 @@ import by.nikiter.model.db.SessionUtil;
  * @see UserService
  * @see TrackingService
  * @see StateService
- * @see SessionUtil
+ * @see SessionManager
  * @author NikiTer
  */
 public class ServiceManager {
@@ -17,37 +17,37 @@ public class ServiceManager {
     private TrackingService trackingService = null;
     private StateService stateService = null;
 
-    private final SessionUtil sessionUtil;
+    private final SessionManager sessionManager;
 
     public ServiceManager() {
-        sessionUtil = new SessionUtil();
+        sessionManager = new SessionManager();
     }
 
     public void openSession() {
-        sessionUtil.openSession();
+        sessionManager.openSession();
     }
 
     public void closeSession() {
-        sessionUtil.closeSession();
+        sessionManager.closeSession();
     }
 
     public UserService getUserService() {
         if (userService == null) {
-            userService = new UserService(sessionUtil.getSession());
+            userService = new UserService(sessionManager);
         }
         return userService;
     }
 
     public TrackingService getTrackingService() {
         if (trackingService == null) {
-            trackingService = new TrackingService(sessionUtil.getSession());
+            trackingService = new TrackingService(sessionManager);
         }
         return trackingService;
     }
 
     public StateService getStateService() {
         if (stateService == null) {
-            stateService = new StateService(sessionUtil.getSession());
+            stateService = new StateService(sessionManager);
         }
         return stateService;
     }
