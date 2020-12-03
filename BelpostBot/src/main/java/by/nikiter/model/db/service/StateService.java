@@ -1,5 +1,6 @@
 package by.nikiter.model.db.service;
 
+import by.nikiter.model.db.SessionManager;
 import by.nikiter.model.db.dao.StateDao;
 import by.nikiter.model.db.entity.StateEntity;
 import org.hibernate.Session;
@@ -16,9 +17,11 @@ public class StateService {
 
     private final StateDao dao;
 
-    public StateService(Session session) {
-        dao = new StateDao();
-        dao.setSession(session);
+    private final SessionManager sessionManager;
+
+    public StateService(SessionManager sessionManager) {
+        this.sessionManager = sessionManager;
+        dao = new StateDao(sessionManager.getSession());
     }
 
     public StateEntity findById(int id) {

@@ -1,6 +1,10 @@
 package by.nikiter.model.db.service;
 
 import by.nikiter.model.UserState;
+import by.nikiter.model.comparator.UserTrackingCreatedAtComparator;
+import by.nikiter.model.comparator.UserTrackingNameComparator;
+import by.nikiter.model.db.SessionManager;
+import by.nikiter.model.db.SqlStatements;
 import by.nikiter.model.db.dao.StateDao;
 import by.nikiter.model.db.dao.TrackingDao;
 import by.nikiter.model.db.dao.UserDao;
@@ -8,8 +12,12 @@ import by.nikiter.model.db.entity.StateEntity;
 import by.nikiter.model.db.entity.TrackingEntity;
 import by.nikiter.model.db.entity.UserEntity;
 import by.nikiter.model.db.entity.UserTrackingEntity;
+import org.hibernate.HibernateException;
 import org.hibernate.Session;
+import org.hibernate.query.Query;
 
+import javax.persistence.criteria.CriteriaQuery;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -27,129 +35,236 @@ public class UserService {
     private final TrackingDao trackingDao;
     private final StateDao stateDao;
 
-    public UserService(Session session) {
-        userDao = new UserDao();
-        trackingDao = new TrackingDao();
-        stateDao = new StateDao();
-        userDao.setSession(session);
-        trackingDao.setSession(session);
-        stateDao.setSession(session);
-    }
+    private final SessionManager sessionManager;
 
-    public boolean hasUser(String username) {
-        return userDao.findById(username) != null;
+    public UserService(SessionManager sessionManager) {
+        this.sessionManager = sessionManager;
+        userDao = new UserDao(sessionManager.getSession());
+        trackingDao = new TrackingDao(sessionManager.getSession());
+        stateDao = new StateDao(sessionManager.getSession());
     }
 
     public void addUser(String username, long chatId) {
-        UserEntity user = userDao.findById(username);
-        if (user == null) {
-            user = new UserEntity();
-            user.setUsername(username);
-            user.setChatId(chatId);
-            user.setState(stateDao.findById(UserState.USING_BOT.getCode()));
+        try {
+            sessionManager.beginTransaction();
+            UserEntity user = userDao.findById(username);
+            if (user == null) {
+                user = new UserEntity();
+                user.setUsername(username);
+                user.setChatId(chatId);
+                user.setState(stateDao.findById(UserState.USING_BOT.getCode()));
+                userDao.saveOrUpdate(user);
+            }
+            sessionManager.commitTransaction();
+        } catch (RuntimeException rEx) {
+            try {
+                sessionManager.rollback();
+            } catch (HibernateException hEx) {
+                hEx.printStackTrace();
+            }
+            sessionManager.closeSession();
+            throw rEx;
         }
-
-        userDao.saveOrUpdate(user);
     }
 
-    public void updateUser(UserEntity user) {
-        userDao.merge(user);
-    }
-
-    public void deleteUser(String username) {
-        userDao.deleteById(username);
-    }
-
-    public List<UserTrackingEntity> getAllTrackings(String username) {
+    public boolean hasUser(String username) {
         UserEntity user = userDao.findById(username);
-        return user.getTrackings();
-    }
-
-    public boolean hasTracking(String username, String trackingNumber) {
-        UserEntity user = userDao.findById(username);
-        if (user == null) {
+        if (user != null) {
+            sessionManager.detach(user);
+            return true;
+        } else {
             return false;
         }
-
-        for (UserTrackingEntity ute : user.getTrackings()) {
-            if (ute.getTracking().getNumber().equals(trackingNumber)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public boolean hasTrackings(String username) {
-        UserEntity user = userDao.findById(username);
-        if (user == null) {
-            return false;
-        }
-
-        return user.getTrackings().size() > 0;
-    }
-
-    public String getTrackingName(String username, String trackingNumber) {
-        UserEntity user = userDao.findById(username);
-        if (user == null) {
-            return null;
-        }
-
-        for (UserTrackingEntity ute : user.getTrackings()) {
-            if (ute.getTracking().getNumber().equals(trackingNumber)) {
-                return ute.getTrackingName();
-            }
-        }
-
-        return null;
-    }
-
-    public StateEntity getUserState(String username) {
-        UserEntity user = userDao.findById(username);
-        return user == null ? null : user.getState();
     }
 
     public void changeUserState(String username, UserState state) {
-        UserEntity user = userDao.findById(username);
-        if (UserState.getEnum(user.getState().getName()) != state) {
-            user.setState(stateDao.findById(state.getCode()));
-            updateUser(user);
+        try {
+            sessionManager.beginTransaction();
+            UserEntity user = userDao.findById(username);
+            if (UserState.getEnum(user.getState().getName()) != state) {
+                user.setState(stateDao.findById(state.getCode()));
+                sessionManager.flush();
+            }
+            sessionManager.commitTransaction();
+        } catch (RuntimeException rEx) {
+            try {
+                sessionManager.rollback();
+            } catch (HibernateException hEx) {
+                hEx.printStackTrace();
+            }
+            sessionManager.closeSession();
+            throw rEx;
         }
     }
 
-    public boolean addTracking(String username, String number, String name) {
-        UserEntity user = userDao.findById(username);
-        if (user == null) {
-            return false;
+    public StateEntity getUserState(String username) {
+        List<StateEntity> states = sessionManager.createQuery(SqlStatements.GET_USER_STATE, StateEntity.class)
+                .setParameter("username", username)
+                .getResultList();
+        if (states.size() > 0) {
+            return states.get(0);
+        } else {
+            return null;
         }
-        TrackingEntity tracking = trackingDao.findById(number);
-        if (tracking == null) {
-            tracking = new TrackingEntity();
-            tracking.setNumber(number);
+    }
+
+    public void addTracking(String username, String number, String name) {
+        try {
+            sessionManager.beginTransaction();
+            UserEntity user = userDao.findById(username);
+            if (user == null) {
+                sessionManager.commitTransaction();
+                return;
+            }
+
+            TrackingEntity tracking = trackingDao.findById(number);
+            if (tracking == null) {
+                tracking = new TrackingEntity();
+                tracking.setNumber(number);
+            }
+            user.addTracking(tracking, name);
+            trackingDao.merge(tracking);
+            sessionManager.commitTransaction();
+        } catch (RuntimeException rEx) {
+            try {
+                sessionManager.rollback();
+            } catch (HibernateException hEx) {
+                hEx.printStackTrace();
+            }
+            sessionManager.closeSession();
+            throw rEx;
         }
-        user.addTracking(tracking, name);
-        trackingDao.merge(tracking);
-        return true;
+    }
+
+    public boolean hasTracking(String username, String trackingNumber) {
+        List<TrackingEntity> trackings = sessionManager.createQuery(SqlStatements.GET_TRACKING_BY_USER, TrackingEntity.class)
+                .setParameter("username",username).setParameter("number",trackingNumber)
+                .getResultList();
+        trackings.forEach(sessionManager::detach);
+        return trackings.size() > 0;
+    }
+
+    public boolean hasTrackings(String username) {
+        List<TrackingEntity> trackings = sessionManager.createQuery(SqlStatements.GET_ALL_TRACKINGS_BY_USER, TrackingEntity.class)
+                .setParameter("username", username)
+                .getResultList();
+        trackings.forEach((sessionManager::detach));
+        return trackings.size() > 0;
+    }
+
+    public String getTrackingName(String username, String trackingNumber) {
+        List<String> names = sessionManager.createQuery(SqlStatements.GET_TRACKING_NAME_BY_USER, String.class)
+                .setParameter("username", username).setParameter("number", trackingNumber)
+                .getResultList();
+        if (names.size() > 0) {
+            return names.get(0);
+        } else {
+            return null;
+        }
+    }
+
+    public List<String> getAllTrackingsNumbers(String username) {
+        try {
+            sessionManager.beginTransaction();
+            List<String> numbers = null;
+            UserEntity user = userDao.findById(username);
+            if (user != null) {
+                List<UserTrackingEntity> trackings = user.getTrackings();
+                trackings.sort(new UserTrackingCreatedAtComparator().thenComparing(new UserTrackingNameComparator()));
+                List<String> finalNumbers = new ArrayList<>();
+                trackings.forEach((tr) -> finalNumbers.add(tr.getTracking().getNumber()));
+                numbers = finalNumbers;
+                sessionManager.clear();
+            }
+            sessionManager.commitTransaction();
+            return numbers;
+        } catch (RuntimeException rEx) {
+            try {
+                sessionManager.rollback();
+            } catch (HibernateException hEx) {
+                hEx.printStackTrace();
+            }
+            sessionManager.closeSession();
+            throw rEx;
+        }
+    }
+
+    public List<String[]> getAllTrackingsNumbersAndNames(String username) {
+        try {
+            sessionManager.beginTransaction();
+            List<String[]> pairs = null;
+            UserEntity user = userDao.findById(username);
+            if (user != null) {
+                List<UserTrackingEntity> trackings = user.getTrackings();
+                pairs = new ArrayList<String[]>();
+                trackings.sort(new UserTrackingCreatedAtComparator().thenComparing(new UserTrackingNameComparator()));
+                for (UserTrackingEntity ute : trackings) {
+                    String[] pair = new String[2];
+                    pair[0] = ute.getTracking().getNumber();
+                    pair[1] = ute.getTrackingName();
+                    pairs.add(pair);
+                }
+                sessionManager.clear();
+            }
+            sessionManager.commitTransaction();
+            return pairs;
+        } catch (RuntimeException rEx) {
+            try {
+                sessionManager.rollback();
+            } catch (HibernateException hEx) {
+                hEx.printStackTrace();
+            }
+            sessionManager.closeSession();
+            throw rEx;
+        }
     }
 
     public boolean removeTracking(String username, String number) {
-        UserEntity user = userDao.findById(username);
-        if (user == null) {
-            return false;
-        }
-
-        TrackingEntity tracking = null;
-        for (UserTrackingEntity currentTracking : user.getTrackings()) {
-            if (currentTracking.getTracking().getNumber().equals(number)) {
-                tracking = currentTracking.getTracking();
-                break;
+        try {
+            sessionManager.beginTransaction();
+            UserEntity user = userDao.findById(username);
+            if (user == null) {
+                sessionManager.commitTransaction();
+                return false;
             }
-        }
 
-        if (tracking != null) {
-            user.removeTracking(tracking);
-            updateUser(user);
-            return true;
+            List<TrackingEntity> trackings = sessionManager
+                    .createQuery(SqlStatements.GET_TRACKING_BY_USER, TrackingEntity.class)
+                    .setParameter("username", username).setParameter("number", number)
+                    .getResultList();
+
+            if (trackings.size() > 0) {
+                user.removeTracking(trackings.get(0));
+                sessionManager.flush();
+                sessionManager.commitTransaction();
+                return true;
+            }
+            sessionManager.commitTransaction();
+            return false;
+        } catch (RuntimeException rEx) {
+            try {
+                sessionManager.rollback();
+            } catch (HibernateException hEx) {
+                hEx.printStackTrace();
+            }
+            sessionManager.closeSession();
+            throw rEx;
         }
-        return false;
+    }
+
+    public void deleteUser(String username) {
+        try {
+            sessionManager.beginTransaction();
+            userDao.deleteById(username);
+            sessionManager.commitTransaction();
+        } catch (RuntimeException rEx) {
+            try {
+                sessionManager.rollback();
+            } catch (HibernateException hEx) {
+                hEx.printStackTrace();
+            }
+            sessionManager.closeSession();
+            throw rEx;
+        }
     }
 }

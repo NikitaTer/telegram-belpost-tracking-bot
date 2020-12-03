@@ -46,7 +46,8 @@ public class DeleteTrackingCommand extends BotCommand {
             SendMessage message;
             if (manager.getUserService().hasTrackings(user.getUserName())) {
                 message = new SendMessage(chat.getId(),PropManager.getMessage("command.delete_tracking.choose"))
-                        .setReplyMarkup(getKeyboard(manager.getUserService().getAllTrackings(user.getUserName())));
+                        .setReplyMarkup(getKeyboard(manager.getUserService()
+                                .getAllTrackingsNumbersAndNames(user.getUserName())));
                 manager.getUserService().changeUserState(user.getUserName(), UserState.CHOOSING_TRACKING_TO_DELETE);
             } else {
                 message = new SendMessage(chat.getId(),PropManager.getMessage("command.no_trackings"));
@@ -62,22 +63,21 @@ public class DeleteTrackingCommand extends BotCommand {
 
     /**
      * Method that makes inline keyboard out of user's trackings
-     * @param trackings list of user's trackings
+     * @param pairs list of user's trackings
      * @return inline keyboard with user's trackings
      */
-    private InlineKeyboardMarkup getKeyboard(List<UserTrackingEntity> trackings) {
+    private InlineKeyboardMarkup getKeyboard(List<String[]> pairs) {
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
 
         int i=0;
         List<InlineKeyboardButton> row = new ArrayList<>();
-        trackings.sort(new UserTrackingCreatedAtComparator().thenComparing(new UserTrackingNameComparator()));
-        for (UserTrackingEntity ute : trackings) {
+        for (String[] pair : pairs) {
             if (i==2) {
                 rows.add(row);
                 row = new ArrayList<>();
                 i=0;
             }
-            row.add(new InlineKeyboardButton(ute.getTrackingName()).setCallbackData(ute.getTracking().getNumber()));
+            row.add(new InlineKeyboardButton(pair[1]).setCallbackData(pair[0]));
             i++;
         }
         rows.add(row);
