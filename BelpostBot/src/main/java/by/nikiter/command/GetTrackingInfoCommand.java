@@ -2,11 +2,11 @@ package by.nikiter.command;
 
 import by.nikiter.TgBot;
 import by.nikiter.model.PropManager;
+import by.nikiter.model.UserState;
 import by.nikiter.model.comparator.UserTrackingCreatedAtComparator;
 import by.nikiter.model.comparator.UserTrackingNameComparator;
 import by.nikiter.model.db.entity.UserTrackingEntity;
 import by.nikiter.model.db.service.ServiceManager;
-import by.nikiter.model.UserState;
 import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Chat;
@@ -21,19 +21,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Command that start the two-step process of deleting user tracking.
- * First step is change user state to {@link UserState#CHOOSING_TRACKING_TO_DELETE} and send a message with inline keyboard
+ * Command that start the two-step process of getting info about tracking.
+ * First step is change user state to {@link UserState#CHOOSING_TRACKING_TO_GET} and send a message with inline keyboard
  * Second step is handles by {@link TgBot#processNonCommandUpdate(Update)}
  *
- * @see by.nikiter.model.ParserHTML#getLastEvent(String)
  * @author NikiTer
  */
-public class DeleteTrackingCommand extends BotCommand {
+public class GetTrackingInfoCommand extends BotCommand {
 
-    private static final String IDENTIFIER = "delete_tracking";
-    private static final String DESC = "Удалить отслеживаемое почтовое отправление";
+    private static final String IDENTIFIER = "get_tracking_info";
+    private static final String DESC = "Выводит информацию о выбранном почтовом отправлении";
 
-    public DeleteTrackingCommand() {
+    public GetTrackingInfoCommand() {
         super(IDENTIFIER, DESC);
     }
 
@@ -45,10 +44,10 @@ public class DeleteTrackingCommand extends BotCommand {
         try {
             SendMessage message;
             if (manager.getUserService().hasTrackings(user.getUserName())) {
-                message = new SendMessage(chat.getId(),PropManager.getMessage("command.delete_tracking.choose"))
+                message = new SendMessage(chat.getId(),PropManager.getMessage("command.get_tracking_info.choose"))
                         .setReplyMarkup(getKeyboard(manager.getUserService()
                                 .getAllTrackingsNumbersAndNames(user.getUserName())));
-                manager.getUserService().changeUserState(user.getUserName(), UserState.CHOOSING_TRACKING_TO_DELETE);
+                manager.getUserService().changeUserState(user.getUserName(), UserState.CHOOSING_TRACKING_TO_GET);
             } else {
                 message = new SendMessage(chat.getId(),PropManager.getMessage("command.no_trackings"));
                 manager.getUserService().changeUserState(user.getUserName(), UserState.USING_BOT);

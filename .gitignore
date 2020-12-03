@@ -4,3 +4,4 @@ target/
 
 # Contains private data
 data.properties
+hibernate.cfg.xml
