@@ -76,9 +76,9 @@ public class ServicesTest {
 
     @Test(groups = {"UserService"}, dependsOnMethods = {"testAddTracking"}, priority = 2)
     public void testHasTrackings() {
-        Assert.assertTrue(manager.getUserService().hasTrackings(testUsername), "Can't find trackings");
+        Assert.assertTrue(manager.getUserService().hasAnyTracking(testUsername), "Can't find trackings");
         Assert.assertFalse(
-                manager.getUserService().hasTrackings(new StringBuilder(testUsername).reverse().toString()),
+                manager.getUserService().hasAnyTracking(new StringBuilder(testUsername).reverse().toString()),
                 "Finds trackings that doesn't exist"
         );
     }

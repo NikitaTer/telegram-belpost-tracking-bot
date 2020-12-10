@@ -1,8 +1,5 @@
 package by.nikiter.command;
 
-import by.nikiter.model.comparator.UserTrackingCreatedAtComparator;
-import by.nikiter.model.comparator.UserTrackingNameComparator;
-import by.nikiter.model.db.entity.UserTrackingEntity;
 import by.nikiter.model.db.service.ServiceManager;
 import by.nikiter.model.ParserHTML;
 import by.nikiter.model.PropManager;
@@ -40,7 +37,7 @@ public class GetTrackingsInfoCommand extends BotCommand {
         manager.getUserService().changeUserState(user.getUserName(),UserState.USING_BOT);
 
         try {
-            if (!manager.getUserService().hasTrackings(user.getUserName())) {
+            if (!manager.getUserService().hasAnyTracking(user.getUserName())) {
                 absSender.execute(new SendMessage(chat.getId(),
                         PropManager.getMessage("command.no_trackings")));
             } else {

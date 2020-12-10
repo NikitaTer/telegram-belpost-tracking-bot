@@ -1,11 +1,7 @@
 package by.nikiter.command;
 
-import by.nikiter.model.ParserHTML;
 import by.nikiter.model.PropManager;
 import by.nikiter.model.UserState;
-import by.nikiter.model.comparator.UserTrackingCreatedAtComparator;
-import by.nikiter.model.comparator.UserTrackingNameComparator;
-import by.nikiter.model.db.entity.UserTrackingEntity;
 import by.nikiter.model.db.service.ServiceManager;
 import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -39,7 +35,7 @@ public class GetTrackingsListCommand extends BotCommand {
 
         try {
 
-            if (!manager.getUserService().hasTrackings(user.getUserName())) {
+            if (!manager.getUserService().hasAnyTracking(user.getUserName())) {
                 absSender.execute(new SendMessage(chat.getId(),
                         PropManager.getMessage("command.no_trackings")));
             } else {
