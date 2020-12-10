@@ -12,9 +12,12 @@ import by.nikiter.model.db.entity.StateEntity;
 import by.nikiter.model.db.entity.TrackingEntity;
 import by.nikiter.model.db.entity.UserEntity;
 import by.nikiter.model.db.entity.UserTrackingEntity;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
+import sun.util.locale.provider.LocaleServiceProviderPool;
 
 import javax.persistence.criteria.CriteriaQuery;
 import java.util.ArrayList;
@@ -30,6 +33,7 @@ import java.util.Set;
  * @author NikiTer
  */
 public class UserService {
+    private static final Logger logger = LogManager.getLogger(UserService.class);
 
     private final UserDao userDao;
     private final TrackingDao trackingDao;
@@ -46,21 +50,24 @@ public class UserService {
 
     public void addUser(String username, long chatId) {
         try {
-            sessionManager.beginTransaction();
-            UserEntity user = userDao.findById(username);
-            if (user == null) {
-                user = new UserEntity();
+            logger.info("Adding user " + username);
+            if (!hasUser(username)) {
+                sessionManager.beginTransaction();
+                UserEntity user = new UserEntity();
                 user.setUsername(username);
                 user.setChatId(chatId);
                 user.setState(stateDao.findById(UserState.USING_BOT.getCode()));
                 userDao.saveOrUpdate(user);
+                logger.info("User " + username + " added");
+                sessionManager.commitTransaction();
+            } else {
+                logger.warn("User " + username + " already added");
             }
-            sessionManager.commitTransaction();
         } catch (RuntimeException rEx) {
             try {
                 sessionManager.rollback();
             } catch (HibernateException hEx) {
-                hEx.printStackTrace();
+                logger.error("Transaction cannot rollback: " + hEx);
             }
             sessionManager.closeSession();
             throw rEx;
@@ -68,6 +75,7 @@ public class UserService {
     }
 
     public boolean hasUser(String username) {
+        logger.info("Checking if user " + username + " in database");
         UserEntity user = userDao.findById(username);
         if (user != null) {
             sessionManager.detach(user);
@@ -79,18 +87,20 @@ public class UserService {
 
     public void changeUserState(String username, UserState state) {
         try {
-            sessionManager.beginTransaction();
             UserEntity user = userDao.findById(username);
             if (UserState.getEnum(user.getState().getName()) != state) {
+                logger.info("Changing state of user " + user);
+                sessionManager.beginTransaction();
                 user.setState(stateDao.findById(state.getCode()));
                 sessionManager.flush();
+                sessionManager.commitTransaction();
+                logger.info("State of user " + username + " changed to " + state.getName());
             }
-            sessionManager.commitTransaction();
         } catch (RuntimeException rEx) {
             try {
                 sessionManager.rollback();
             } catch (HibernateException hEx) {
-                hEx.printStackTrace();
+                logger.error("Transaction cannot rollback: " + hEx);
             }
             sessionManager.closeSession();
             throw rEx;
@@ -98,38 +108,43 @@ public class UserService {
     }
 
     public StateEntity getUserState(String username) {
+        logger.info("Getting state of user " + username);
         List<StateEntity> states = sessionManager.createQuery(SqlStatements.GET_USER_STATE, StateEntity.class)
                 .setParameter("username", username)
                 .getResultList();
         if (states.size() > 0) {
             return states.get(0);
         } else {
+            logger.warn("User " + username + " have no state");
             return null;
         }
     }
 
     public void addTracking(String username, String number, String name) {
         try {
-            sessionManager.beginTransaction();
+            logger.info("Adding tracking " + number + " with name + " + name + " to user " + username);
             UserEntity user = userDao.findById(username);
             if (user == null) {
-                sessionManager.commitTransaction();
+                logger.warn("Can't find user " + username);
                 return;
             }
 
+            sessionManager.beginTransaction();
             TrackingEntity tracking = trackingDao.findById(number);
             if (tracking == null) {
                 tracking = new TrackingEntity();
                 tracking.setNumber(number);
+                logger.info("Created new tracking " + number);
             }
             user.addTracking(tracking, name);
             trackingDao.merge(tracking);
             sessionManager.commitTransaction();
+            logger.info("Added tracking " + number + " with name " + name + " to user " + username);
         } catch (RuntimeException rEx) {
             try {
                 sessionManager.rollback();
             } catch (HibernateException hEx) {
-                hEx.printStackTrace();
+                logger.error("Transaction cannot rollback: " + hEx);
             }
             sessionManager.closeSession();
             throw rEx;
@@ -137,6 +152,7 @@ public class UserService {
     }
 
     public boolean hasTracking(String username, String trackingNumber) {
+        logger.info("Checking if user " + username + " has tracking " + trackingNumber);
         List<TrackingEntity> trackings = sessionManager.createQuery(SqlStatements.GET_TRACKING_BY_USER, TrackingEntity.class)
                 .setParameter("username",username).setParameter("number",trackingNumber)
                 .getResultList();
@@ -144,7 +160,8 @@ public class UserService {
         return trackings.size() > 0;
     }
 
-    public boolean hasTrackings(String username) {
+    public boolean hasAnyTracking(String username) {
+        logger.info("Checking if user " + username + " any tracking");
         List<TrackingEntity> trackings = sessionManager.createQuery(SqlStatements.GET_ALL_TRACKINGS_BY_USER, TrackingEntity.class)
                 .setParameter("username", username)
                 .getResultList();
@@ -153,19 +170,21 @@ public class UserService {
     }
 
     public String getTrackingName(String username, String trackingNumber) {
+        logger.info("Getting name of tracking " + trackingNumber + " in " + username + " list");
         List<String> names = sessionManager.createQuery(SqlStatements.GET_TRACKING_NAME_BY_USER, String.class)
                 .setParameter("username", username).setParameter("number", trackingNumber)
                 .getResultList();
         if (names.size() > 0) {
             return names.get(0);
         } else {
+            logger.warn("User " + username + " don't have tracking " + trackingNumber);
             return null;
         }
     }
 
     public List<String> getAllTrackingsNumbers(String username) {
         try {
-            sessionManager.beginTransaction();
+            logger.info("Getting all trackings numbers of user " + username);
             List<String> numbers = null;
             UserEntity user = userDao.findById(username);
             if (user != null) {
@@ -175,15 +194,11 @@ public class UserService {
                 trackings.forEach((tr) -> finalNumbers.add(tr.getTracking().getNumber()));
                 numbers = finalNumbers;
                 sessionManager.clear();
+            } else {
+                logger.warn("Can't find user " + username);
             }
-            sessionManager.commitTransaction();
             return numbers;
         } catch (RuntimeException rEx) {
-            try {
-                sessionManager.rollback();
-            } catch (HibernateException hEx) {
-                hEx.printStackTrace();
-            }
             sessionManager.closeSession();
             throw rEx;
         }
@@ -191,29 +206,25 @@ public class UserService {
 
     public List<String[]> getAllTrackingsNumbersAndNames(String username) {
         try {
-            sessionManager.beginTransaction();
-            List<String[]> pairs = null;
+            logger.info("Getting all trackings numbers and names of user " + username);
+            List<String[]> numberNames = null;
             UserEntity user = userDao.findById(username);
             if (user != null) {
                 List<UserTrackingEntity> trackings = user.getTrackings();
-                pairs = new ArrayList<String[]>();
+                numberNames = new ArrayList<String[]>();
                 trackings.sort(new UserTrackingCreatedAtComparator().thenComparing(new UserTrackingNameComparator()));
                 for (UserTrackingEntity ute : trackings) {
-                    String[] pair = new String[2];
-                    pair[0] = ute.getTracking().getNumber();
-                    pair[1] = ute.getTrackingName();
-                    pairs.add(pair);
+                    String[] numberName = new String[2];
+                    numberName[0] = ute.getTracking().getNumber();
+                    numberName[1] = ute.getTrackingName();
+                    numberNames.add(numberName);
                 }
                 sessionManager.clear();
+            } else {
+                logger.warn("Can't find user " + username);
             }
-            sessionManager.commitTransaction();
-            return pairs;
+            return numberNames;
         } catch (RuntimeException rEx) {
-            try {
-                sessionManager.rollback();
-            } catch (HibernateException hEx) {
-                hEx.printStackTrace();
-            }
             sessionManager.closeSession();
             throw rEx;
         }
@@ -221,13 +232,14 @@ public class UserService {
 
     public boolean removeTracking(String username, String number) {
         try {
-            sessionManager.beginTransaction();
             UserEntity user = userDao.findById(username);
             if (user == null) {
-                sessionManager.commitTransaction();
+                logger.warn("Can't find user " + username);
                 return false;
             }
 
+            logger.info("Removing tracking " + number + " from user " + username);
+            sessionManager.beginTransaction();
             List<TrackingEntity> trackings = sessionManager
                     .createQuery(SqlStatements.GET_TRACKING_BY_USER, TrackingEntity.class)
                     .setParameter("username", username).setParameter("number", number)
@@ -237,7 +249,10 @@ public class UserService {
                 user.removeTracking(trackings.get(0));
                 sessionManager.flush();
                 sessionManager.commitTransaction();
+                logger.info("Tracking + " + number + " removed from user " + username);
                 return true;
+            } else {
+                logger.warn("Can't find tracking " + number + " in user " + username + " list");
             }
             sessionManager.commitTransaction();
             return false;
@@ -245,7 +260,7 @@ public class UserService {
             try {
                 sessionManager.rollback();
             } catch (HibernateException hEx) {
-                hEx.printStackTrace();
+                logger.error("Transaction cannot rollback: " + hEx);
             }
             sessionManager.closeSession();
             throw rEx;
@@ -254,14 +269,16 @@ public class UserService {
 
     public void deleteUser(String username) {
         try {
+            logger.info("Deleting user " + username);
             sessionManager.beginTransaction();
             userDao.deleteById(username);
             sessionManager.commitTransaction();
+            logger.info("User " + username + " deleted");
         } catch (RuntimeException rEx) {
             try {
                 sessionManager.rollback();
             } catch (HibernateException hEx) {
-                hEx.printStackTrace();
+                logger.error("Transaction cannot rollback: " + hEx);
             }
             sessionManager.closeSession();
             throw rEx;

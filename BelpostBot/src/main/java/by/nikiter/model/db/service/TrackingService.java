@@ -10,6 +10,8 @@ import by.nikiter.model.db.dao.TrackingDao;
 import by.nikiter.model.db.entity.TrackingEntity;
 import by.nikiter.model.db.entity.UserEntity;
 import by.nikiter.model.db.entity.UserTrackingEntity;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -26,6 +28,7 @@ import java.util.*;
  * @author NikiTer
  */
 public class TrackingService {
+    private static final Logger logger = LogManager.getLogger(TrackingService.class);
 
     private final TrackingDao dao;
 
@@ -38,20 +41,14 @@ public class TrackingService {
 
     public Map<String, Timestamp> getAllTrackingsNumbersAndUpdatedAt() {
         try {
-            sessionManager.beginTransaction();
+            logger.info("Getting all trackings numbers and updated at dates");
             Map<String, Timestamp> map = new HashMap<>();
             for (TrackingEntity tracking : dao.findAll()) {
                 map.put(tracking.getNumber(), tracking.getUpdatedAt());
                 sessionManager.detach(tracking);
             }
-            sessionManager.commitTransaction();
             return map;
         } catch (RuntimeException rEx) {
-            try {
-                sessionManager.rollback();
-            } catch (HibernateException hEx) {
-                hEx.printStackTrace();
-            }
             sessionManager.closeSession();
             throw rEx;
         }
@@ -59,19 +56,21 @@ public class TrackingService {
 
     public boolean updateTrackingInfo(String trackingNumber, String lastEvent, String username) {
         try {
-            sessionManager.beginTransaction();
+            logger.info("Updating info about tracking " + trackingNumber);
             TrackingEntity tracking = dao.findById(trackingNumber);
             if (tracking == null) {
-                sessionManager.commitTransaction();
+                logger.warn("Can't find tracking " + trackingNumber);
                 return false;
             }
 
+            sessionManager.beginTransaction();
             tracking.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
             if (!Objects.equals(tracking.getLastEvent(), lastEvent)) {
                 tracking.setLastEvent(lastEvent);
-                //was dao.merge()
                 sessionManager.flush();
                 sessionManager.commitTransaction();
+                logger.info("Updated info about tracking " + trackingNumber);
+
                 String updateMessage = PropManager.getMessage("info_update");
                 for (UserTrackingEntity ute : tracking.getUsers()) {
                     if (!ute.getUser().getUsername().equals(username)) {
@@ -89,9 +88,9 @@ public class TrackingService {
                 }
                 return true;
             } else {
-                //was dao.merge()
                 sessionManager.flush();
                 sessionManager.commitTransaction();
+                logger.info("Info about tracking " + trackingNumber + " was the same");
                 return false;
             }
         } catch (RuntimeException rEx) {
@@ -111,14 +110,16 @@ public class TrackingService {
 
     public boolean tryToDeleteTracking(String number) {
         try {
-            sessionManager.beginTransaction();
+            logger.info("Trying to delete tracking " + number);
             TrackingEntity tracking = dao.findById(number);
             if (tracking != null && tracking.getUsers().size() == 0) {
+                sessionManager.beginTransaction();
                 dao.delete(tracking);
                 sessionManager.commitTransaction();
+                logger.info("Tracking " + number + " deleted");
                 return true;
             } else {
-                sessionManager.commitTransaction();
+                logger.info("Tracking " + number + " has more users");
                 return false;
             }
         } catch (RuntimeException rEx) {

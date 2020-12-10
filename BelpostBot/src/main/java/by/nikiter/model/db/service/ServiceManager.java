@@ -7,7 +7,6 @@ import by.nikiter.model.db.SessionManager;
  *
  * @see UserService
  * @see TrackingService
- * @see StateService
  * @see SessionManager
  * @author NikiTer
  */
@@ -15,7 +14,6 @@ public class ServiceManager {
 
     private UserService userService = null;
     private TrackingService trackingService = null;
-    private StateService stateService = null;
 
     private final SessionManager sessionManager;
 
@@ -43,12 +41,5 @@ public class ServiceManager {
             trackingService = new TrackingService(sessionManager);
         }
         return trackingService;
-    }
-
-    public StateService getStateService() {
-        if (stateService == null) {
-            stateService = new StateService(sessionManager);
-        }
-        return stateService;
     }
 }
