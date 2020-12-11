@@ -1,6 +1,8 @@
 package by.nikiter.model;
 
 import com.vdurmont.emoji.EmojiParser;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -15,6 +17,7 @@ import java.net.SocketTimeoutException;
  * @author NikiTer
  */
 public class ParserHTML {
+    private static final Logger logger = LogManager.getLogger(ParserHTML.class);
 
     private final static String URL = "https://webservices.belpost.by/searchRu/";
     private final static int TIMEOUT = 10_000;
@@ -26,53 +29,55 @@ public class ParserHTML {
      * @return tracking info
      */
     public static String[] getTrackingMessage(String trackingNum) {
+        logger.info("Parsing tracking message for tracking " + trackingNum);
         String[] result = new String[2];
         result[0] = null;
         result[1] = null;
+        Elements tables;
+        Document doc;
 
         try {
-            Document doc = Jsoup.connect(URL + trackingNum)
+            doc = Jsoup.connect(URL + trackingNum)
                     .userAgent("Mozilla").timeout(TIMEOUT).get();
-            Elements tables = doc.select("table");
-
-            if (tables.size() < 3) {
-                result[0] = PropManager.getMessage("tracking_message.html.no_info");
-                return result;
-            }
-
-            StringBuilder sb;
-            StringBuilder temp;
-            sb = new StringBuilder();
-            String arrowDown = EmojiParser.parseToUnicode("         :arrow_down:\n");
-
-            boolean isFirst = true;
-            for (Element row : tables.get(0).select("tr")) {
-                if (isFirst) {
-                    isFirst = false;
-                    continue;
-                }
-                temp = getBlock(row);
-                sb.append(temp);
-                if (
-                        !row.equals(
-                                tables.get(0).select("tr").get(tables.get(0).select("tr").size() - 1)
-                        )
-                ) {
-                    sb.append(arrowDown).append(arrowDown).append(arrowDown).append(arrowDown);
-                } else {
-                    result[1] = temp.toString();
-                }
-            }
-            result[0] = sb.toString();
-
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            if (e instanceof SocketTimeoutException) {
-                return result;
-            }
+            tables = doc.select("table");
+        } catch (IOException ex) {
+            logger.error("Can't parse Belpost site for tracking " + trackingNum + ": " + ex.getMessage());
+            return result;
         }
 
+        if (tables.size() < 3) {
+            result[0] = PropManager.getMessage("tracking_message.html.no_info");
+            logger.info("No info about tracking " + trackingNum);
+            return result;
+        }
+
+        logger.info("Building info message for tracking " + trackingNum);
+        StringBuilder sb;
+        StringBuilder temp;
+        sb = new StringBuilder();
+        String arrowDown = EmojiParser.parseToUnicode("         :arrow_down:\n");
+
+        boolean isFirst = true;
+        for (Element row : tables.get(0).select("tr")) {
+            if (isFirst) {
+                isFirst = false;
+                continue;
+            }
+            temp = getBlock(row);
+            sb.append(temp);
+            if (
+                    !row.equals(
+                            tables.get(0).select("tr").get(tables.get(0).select("tr").size() - 1)
+                    )
+            ) {
+                sb.append(arrowDown).append(arrowDown).append(arrowDown).append(arrowDown);
+            } else {
+                result[1] = temp.toString();
+            }
+        }
+        result[0] = sb.toString();
+
+        logger.info("Tracking message for tracking " + trackingNum + " built");
         return result;
     }
 
@@ -83,25 +88,27 @@ public class ParserHTML {
      * @return last event from tracking info
      */
     public static String getLastEvent(String trackingNum) {
+        logger.info("Parsing last event for tracking " + trackingNum);
+        Document doc;
+        Elements tables;
         try {
-            Document doc = Jsoup.connect(URL + trackingNum)
+            doc = Jsoup.connect(URL + trackingNum)
                     .userAgent("Mozilla").timeout(TIMEOUT).get();
-            Elements tables = doc.select("table");
-
-            if (tables.size() < 3) {
-                return null;
-            }
-
-            Element lastRow = tables.get(0).select("tr").get(tables.get(0).select("tr").size() - 1);
-
-            return getBlock(lastRow).toString();
-        } catch (IOException e) {
-            e.printStackTrace();
-            if (e instanceof SocketTimeoutException) {
-                return null;
-            }
+            tables = doc.select("table");
+        } catch (IOException ex) {
+            logger.error("Can't parse Belpost site for tracking " + trackingNum + ": " + ex.getMessage());
+            return null;
         }
-        return null;
+
+        if (tables.size() < 3) {
+            logger.info("No last event for tracking " + trackingNum);
+            return null;
+        }
+
+        Element lastRow = tables.get(0).select("tr").get(tables.get(0).select("tr").size() - 1);
+
+        logger.info("Got last event for tracking " + trackingNum);
+        return getBlock(lastRow).toString();
     }
 
     private static StringBuilder getBlock(Element row) {
