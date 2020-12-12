@@ -146,7 +146,7 @@ public class TgBot extends TelegramLongPollingCommandBot {
                 if (info[0] == null) {
                     execute(new SendMessage(query.getMessage().getChatId(),
                             PropManager.getMessage("error.no_response")
-                    ));
+                    ).enableHtml(true));
                     break;
                 }
                 String name = manager.getUserService().getTrackingName(query.getFrom().getUserName(), query.getData());

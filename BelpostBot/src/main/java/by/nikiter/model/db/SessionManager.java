@@ -98,7 +98,6 @@ public class SessionManager {
 
     public void detach(Object o) {
         session.detach(o);
-        logger.info("Detached object " + o.toString());
     }
 
     public void flush() {

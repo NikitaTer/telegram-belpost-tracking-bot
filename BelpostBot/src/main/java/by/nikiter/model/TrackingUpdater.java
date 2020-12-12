@@ -47,6 +47,7 @@ public class TrackingUpdater {
         for (Map.Entry<String,Timestamp> entry
                 :
                 manager.getTrackingService().getAllTrackingsNumbersAndUpdatedAt().entrySet()) {
+            //todo: if doesn't work. Parser works every time
             if (entry.getValue().before(new Timestamp(System.currentTimeMillis() - UPDATE_DELAY))) {
                 String lastEvent = ParserHTML.getLastEvent(entry.getKey());
                 if (lastEvent != null) {

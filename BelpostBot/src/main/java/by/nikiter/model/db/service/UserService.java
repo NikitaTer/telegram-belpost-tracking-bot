@@ -15,14 +15,9 @@ import by.nikiter.model.db.entity.UserTrackingEntity;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.HibernateException;
-import org.hibernate.Session;
-import org.hibernate.query.Query;
-import sun.util.locale.provider.LocaleServiceProviderPool;
 
-import javax.persistence.criteria.CriteriaQuery;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Service that provides an interface for working with user table through {@link UserDao}
@@ -89,7 +84,7 @@ public class UserService {
         try {
             UserEntity user = userDao.findById(username);
             if (UserState.getEnum(user.getState().getName()) != state) {
-                logger.info("Changing state of user " + user);
+                logger.info("Changing state of user " + username);
                 sessionManager.beginTransaction();
                 user.setState(stateDao.findById(state.getCode()));
                 sessionManager.flush();
@@ -161,7 +156,7 @@ public class UserService {
     }
 
     public boolean hasAnyTracking(String username) {
-        logger.info("Checking if user " + username + " any tracking");
+        logger.info("Checking if user " + username + " has any tracking");
         List<TrackingEntity> trackings = sessionManager.createQuery(SqlStatements.GET_ALL_TRACKINGS_BY_USER, TrackingEntity.class)
                 .setParameter("username", username)
                 .getResultList();

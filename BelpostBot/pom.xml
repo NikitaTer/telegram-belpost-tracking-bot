@@ -175,7 +175,7 @@
           <programs>
             <program>
               <mainClass>by.nikiter.App</mainClass>
-              <name>workerBot</name>
+              <id>workerBot</id>
             </program>
           </programs>
         </configuration>
